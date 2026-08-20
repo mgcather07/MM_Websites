@@ -1,0 +1,162 @@
+/* ==========================================================================
+   M&M Websites — global tokens, reset, and base type
+   Direction 1A "Hometown Bold". Tokens mirror the design handoff exactly.
+   ========================================================================== */
+
+:root {
+  /* Color */
+  --maroon: #7a1b2e;
+  --maroon-hover: #661624;
+  --maroon-tint: #d89aa6;
+  --ink: #1d1f21;
+  --ink-2: #3a3e42;
+  --gray-700: #4c5155;
+  --gray-600: #5a5f64;
+  --gray-500: #6b7076;
+  --line: #e3e1de;
+  --field-line: #d9d6d2;
+  --surface: #f4f2f0;
+  --white: #ffffff;
+  --work-placeholder: #2a2c2f;
+  --error: #b3261e;
+
+  /* Layout */
+  --container: 1120px;
+  --band-x: 44px;
+  --band-y: 76px;
+
+  --font-sans: var(--font-archivo), -apple-system, system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* offset anchor targets for the sticky nav */
+  scroll-padding-top: 84px;
+}
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--maroon);
+  outline-offset: 2px;
+}
+
+/* Shared layout helpers ---------------------------------------------------- */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+}
+
+.band {
+  padding: var(--band-y) var(--band-x);
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--maroon);
+}
+
+.h2 {
+  font-size: 38px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-family: inherit;
+  text-align: center;
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    transform 120ms ease-out;
+}
+
+.btn-white {
+  background: var(--white);
+  color: var(--maroon);
+}
+
+.btn-maroon {
+  background: var(--maroon);
+  color: var(--white);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: var(--white);
+}
+
+@media (min-width: 1024px) {
+  .btn-white:hover {
+    background: var(--surface);
+  }
+  .btn-maroon:hover {
+    background: var(--maroon-hover);
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.btn-maroon:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

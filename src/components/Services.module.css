@@ -1,0 +1,108 @@
+.section {
+  background: var(--white);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 38px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--maroon);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition:
+    border-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+
+@media (min-width: 1024px) {
+  .card:hover {
+    border-color: #c9c4bc;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.cardTitle {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cardBody {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--gray-600);
+}
+
+.pricing {
+  margin-top: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.pricingText {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.pricingLead {
+  color: var(--maroon);
+}
+
+.pricingBtn {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 22px;
+  border-radius: 9px;
+  white-space: nowrap;
+  flex: none;
+}
+
+@media (max-width: 1199px) {
+  .section {
+    padding: 56px 32px;
+  }
+}
+
+/* 600–899px: 2-column service grid */
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  .section {
+    padding: 48px 20px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .pricing {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pricingBtn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,228 @@
+.section {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+/* Left column ------------------------------------------------------------- */
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.title {
+  line-height: 1.1;
+}
+
+.lede {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.contact p {
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+.contact a {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--field-line);
+}
+
+.contact a:hover {
+  text-decoration-color: var(--maroon);
+}
+
+.area {
+  font-size: 15px !important;
+  color: var(--gray-500) !important;
+  padding-top: 6px;
+}
+
+/* Form card --------------------------------------------------------------- */
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.field input,
+.field select,
+.field textarea {
+  font-family: inherit;
+  border: 1px solid var(--field-line);
+  padding: 12px 13px;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--white);
+  border-radius: 0;
+  outline: none;
+  width: 100%;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field select.placeholder {
+  color: var(--gray-500);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--maroon);
+  box-shadow: 0 0 0 2px rgba(122, 27, 46, 0.2);
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--error);
+}
+
+.formError {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--error);
+}
+
+.formError a {
+  text-decoration: underline;
+}
+
+.submit {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px;
+  border-radius: 9px;
+}
+
+.submit:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+/* Honeypot — kept in the a11y tree off-screen, hidden from sighted users */
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Success confirmation ---------------------------------------------------- */
+
+.confirm {
+  border: 1px solid var(--maroon);
+  border-top: 3px solid var(--maroon);
+  background: var(--white);
+  padding: 34px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirmLead {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+}
+
+.confirmBody {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+.confirmContact {
+  font-size: 16px;
+  color: var(--ink-2);
+  padding-top: 4px;
+}
+
+.confirmContact a {
+  color: var(--maroon);
+  font-weight: 700;
+}
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 1199px) {
+  .section {
+    padding: 56px 32px;
+  }
+  .grid {
+    gap: 40px;
+  }
+}
+
+/* 600–899px: one column */
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 599px) {
+  .section {
+    padding: 48px 20px;
+  }
+  .card {
+    padding: 22px;
+  }
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

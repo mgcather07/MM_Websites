@@ -1,0 +1,136 @@
+.hero {
+  background: var(--maroon);
+  padding: 64px var(--band-x) 72px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  border-radius: 999px;
+}
+
+.title {
+  color: var(--white);
+  font-size: 62px;
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -2px;
+  text-wrap: balance;
+}
+
+.body {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 19px;
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.buttons {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.primary {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 16px 28px;
+  border-radius: 10px;
+}
+
+.secondary {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 15px 26px;
+  border-radius: 10px;
+}
+
+.proof {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0;
+  display: flex;
+  gap: 26px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.imageFrame {
+  height: 420px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+}
+
+/* 900–1199px: keep layout, tighten padding, drop H1 to 48px */
+@media (max-width: 1199px) {
+  .hero {
+    padding: 48px 32px 56px;
+  }
+  .title {
+    font-size: 48px;
+  }
+}
+
+/* 600–899px: single column, copy above image, image 300px */
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .imageFrame {
+    height: 300px;
+  }
+}
+
+/* <600px */
+@media (max-width: 599px) {
+  .hero {
+    padding: 40px 20px 48px;
+  }
+  .title {
+    font-size: 36px;
+    letter-spacing: -1px;
+  }
+  .body {
+    font-size: 17px;
+  }
+  .buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .primary,
+  .secondary {
+    width: 100%;
+  }
+  .proof {
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+}
