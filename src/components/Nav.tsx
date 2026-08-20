@@ -6,9 +6,14 @@ export default function Nav() {
     <header className={styles.nav}>
       <div className={`container ${styles.inner}`}>
         <a href="#top" className={styles.logo} aria-label={`${site.name} home`}>
-          <span className={styles.mark} aria-hidden="true">
-            M&amp;M
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size logo mark */}
+          <img
+            className={styles.mark}
+            src="/images/logo/mm-mark.png"
+            alt=""
+            width={61}
+            height={32}
+          />
           <span className={styles.wordmark}>{site.name}</span>
         </a>
 
@@ -18,13 +23,13 @@ export default function Nav() {
               {item.label}
             </a>
           ))}
-          <a href="#quote" className={`btn btn-white ${styles.cta}`}>
+          <a href="#quote" className={`btn btn-maroon ${styles.cta}`}>
             Get a free quote
           </a>
         </nav>
 
         {/* Compact CTA shown when the full link row is hidden on small screens */}
-        <a href="#quote" className={`btn btn-white ${styles.ctaMobile}`}>
+        <a href="#quote" className={`btn btn-maroon ${styles.ctaMobile}`}>
           Free quote
         </a>
       </div>

@@ -1,6 +1,6 @@
 .hero {
   background: var(--maroon);
-  padding: 64px var(--band-x) 72px;
+  padding: 52px var(--band-x) 64px;
 }
 
 .grid {
