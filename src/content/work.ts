@@ -22,9 +22,10 @@ export const work: WorkItem[] = [
     url: "https://www.bowfishingassociation.com",
   },
   {
-    title: "Magnolia Salon",
-    meta: "Online booking · gift cards",
-    image: "/images/work/magnolia-salon.jpg",
+    title: "Mandy Makeup",
+    meta: "Bridal makeup studio · portfolio · online booking",
+    image: "/images/work/mandy-makeup.jpg",
+    url: "https://mandymakeup.web.app",
   },
   {
     title: "Cather Lawn & Land",
