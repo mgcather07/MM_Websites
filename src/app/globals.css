@@ -84,6 +84,25 @@ button {
   margin-inline: auto;
 }
 
+/* Skip link — hidden until focused by keyboard */
+.visually-hidden-focusable {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  background: var(--white);
+  color: var(--maroon);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: top 150ms ease-out;
+}
+
+.visually-hidden-focusable:focus {
+  top: 12px;
+}
+
 .band {
   padding: var(--band-y) var(--band-x);
 }

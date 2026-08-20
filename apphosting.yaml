@@ -1,0 +1,39 @@
+# Firebase App Hosting configuration.
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # Project id for the Admin SDK. App Hosting also injects credentials
+  # automatically, so no service-account key is needed in production.
+  - variable: FIREBASE_PROJECT_ID
+    value: mm-websites
+    availability:
+      - RUNTIME
+
+  # Where quote leads are emailed.
+  - variable: LEAD_TO_EMAIL
+    value: hello@mmwebsites.com
+    availability:
+      - RUNTIME
+
+  # --- Secrets ---------------------------------------------------------------
+  # Store the Resend key in Cloud Secret Manager, then uncomment. Set it with:
+  #   firebase apphosting:secrets:set RESEND_API_KEY
+  #   firebase apphosting:secrets:grantaccess RESEND_API_KEY --backend <backend-id>
+  #
+  # - variable: RESEND_API_KEY
+  #   secret: RESEND_API_KEY
+  #   availability:
+  #     - RUNTIME
+  #
+  # A verified Resend sender, e.g. "M&M Websites <quotes@mmwebsites.com>".
+  # - variable: LEAD_FROM_EMAIL
+  #   value: "M&M Websites <onboarding@resend.dev>"
+  #   availability:
+  #     - RUNTIME
