@@ -28,8 +28,9 @@ export const work: WorkItem[] = [
     url: "https://lumierebeauty.web.app",
   },
   {
-    title: "Cather Lawn & Land",
-    meta: "One-pager · click-to-call · SEO",
-    image: "/images/work/cather-lawn.jpg",
+    title: "Hometown Handyman Co.",
+    meta: "Home services · services grid · quote CTA",
+    image: "/images/work/hometown-handyman.jpg",
+    url: "https://hometownhandyman.web.app",
   },
 ];
