@@ -39,7 +39,7 @@ export default function Hero() {
 
         <div className={styles.imageFrame}>
           <ImageSlot
-            src="/hero.svg"
+            src="/images/hero/placeholder.svg"
             alt="A laptop and phone showing a small-business website built by M&M Websites"
             eager
             placeholder="Photo of Michael & Mandy, or a laptop showing a finished site"
