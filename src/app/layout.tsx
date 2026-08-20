@@ -13,10 +13,14 @@ const archivo = Archivo({
 const description =
   "M&M Websites builds clean, fast custom websites for small businesses in Gardendale, Alabama and greater Birmingham. Starting at $500. Get a free quote.";
 
+// Live site URL. Update this (and it flows to canonical / OG image URLs)
+// when the custom domain (e.g. mmwebsites.com) is connected.
+const siteUrl = "https://mm-websites.web.app";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mmwebsites.com"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "M&M Websites — Small business websites in Gardendale, AL",
+    default: "M&M Websites",
     template: "%s · M&M Websites",
   },
   description,
@@ -29,15 +33,25 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    title: "M&M Websites — Small business websites in Gardendale, AL",
+    title: "M&M Websites",
     description,
     siteName: site.name,
+    url: "/",
     locale: "en_US",
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "M&M Websites — websites built for you",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "M&M Websites — Small business websites in Gardendale, AL",
+    title: "M&M Websites",
     description,
+    images: ["/og.jpg"],
   },
   alternates: { canonical: "/" },
 };
