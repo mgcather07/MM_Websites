@@ -1,3 +1,4 @@
+import AnchorScroll from "@/components/AnchorScroll";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
@@ -40,6 +41,7 @@ export default function Home() {
         // JSON-LD for local SEO; content is static and trusted.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <AnchorScroll />
       <a href="#quote" className="visually-hidden-focusable">
         Skip to quote form
       </a>
