@@ -13,10 +13,10 @@ export default function Hero() {
           </h1>
 
           <p className={styles.body}>
-            We&apos;re Michael &amp; Mandy — two folks from Gardendale who build
-            clean, fast websites for contractors, salons, lawn care crews,
-            restaurants, churches and everybody in between. No agency runaround,
-            no monthly surprise.
+            With years of experience building for small businesses, we design
+            clean, fast websites that make you look professional and help
+            customers find you. Every site is custom-built, flat-priced, and
+            yours to own — no agency runaround, no monthly surprises.
           </p>
 
           <div className={styles.buttons}>
@@ -40,7 +40,7 @@ export default function Hero() {
             src="/images/hero/hero.jpg"
             alt="A laptop and phone showing a small-business website built by M&M Websites"
             eager
-            placeholder="Photo of Michael & Mandy, or a laptop showing a finished site"
+            placeholder="A finished website on a laptop and phone"
           />
         </div>
       </div>
