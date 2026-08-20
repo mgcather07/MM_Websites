@@ -100,17 +100,6 @@ export default function QuoteForm() {
             <p>
               <b>Email</b> · <a href={`mailto:${site.email}`}>{site.email}</a>
             </p>
-            <p>
-              <b>Follow</b> ·{" "}
-              <a href={site.facebookUrl} target="_blank" rel="noopener noreferrer">
-                Facebook
-              </a>{" "}
-              ·{" "}
-              <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer">
-                Instagram
-              </a>
-            </p>
-            <p className={styles.area}>{site.serviceArea}</p>
           </div>
         </div>
 

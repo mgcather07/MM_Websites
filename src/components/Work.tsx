@@ -1,6 +1,16 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import ImageSlot from "./ImageSlot";
-import { work } from "@/content/work";
+import { work, type WorkItem } from "@/content/work";
 import styles from "./Work.module.css";
+
+// Resolved at build time: only treat an image as present if the file actually
+// exists in /public, so unfilled portfolio slots show the clean placeholder
+// instead of a broken-image icon (this component renders server-side).
+function resolveImage(image?: string): string | undefined {
+  if (!image) return undefined;
+  return existsSync(path.join(process.cwd(), "public", image)) ? image : undefined;
+}
 
 export default function Work() {
   return (
@@ -17,20 +27,43 @@ export default function Work() {
 
         <div className={styles.grid}>
           {work.map((item) => (
-            <article key={item.title} className={styles.item}>
-              <div className={styles.thumb}>
-                <ImageSlot
-                  src={item.image}
-                  alt={item.image ? `${item.title} website` : undefined}
-                  placeholder="Project screenshot"
-                />
-              </div>
-              <h3 className={styles.itemTitle}>{item.title}</h3>
-              <p className={styles.itemMeta}>{item.meta}</p>
-            </article>
+            <Card key={item.title} item={item} />
           ))}
         </div>
       </div>
     </section>
   );
+}
+
+function Card({ item }: { item: WorkItem }) {
+  const image = resolveImage(item.image);
+  const inner = (
+    <>
+      <div className={styles.thumb}>
+        <ImageSlot
+          src={image}
+          alt={image ? `${item.title} website` : undefined}
+          placeholder="Project screenshot"
+        />
+      </div>
+      <h3 className={styles.itemTitle}>{item.title}</h3>
+      <p className={styles.itemMeta}>{item.meta}</p>
+    </>
+  );
+
+  if (item.url) {
+    return (
+      <a
+        className={`${styles.item} ${styles.linked}`}
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${item.title} — visit the live site (opens in a new tab)`}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return <article className={styles.item}>{inner}</article>;
 }

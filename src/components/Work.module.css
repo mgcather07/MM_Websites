@@ -43,6 +43,16 @@
   gap: 12px;
 }
 
+.linked {
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .linked:hover .itemTitle {
+    color: var(--maroon-tint);
+  }
+}
+
 .thumb {
   height: 230px;
   border-radius: 10px;

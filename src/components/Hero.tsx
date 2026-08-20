@@ -8,8 +8,6 @@ export default function Hero() {
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={`container ${styles.grid}`}>
         <div className={styles.copy}>
-          <span className={styles.pill}>Gardendale, Alabama</span>
-
           <h1 id="hero-title" className={styles.title}>
             A real website for your small business. Starting at $500.
           </h1>

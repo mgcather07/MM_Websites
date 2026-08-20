@@ -1,8 +1,10 @@
 export type WorkItem = {
   title: string;
   meta: string;
-  /** Path under /public, e.g. "/work/ridgeline.webp". Empty = show placeholder. */
+  /** Path under /public, e.g. "/images/work/name.jpg". Empty = show placeholder. */
   image?: string;
+  /** Live site URL. When set, the card links out to it in a new tab. */
+  url?: string;
 };
 
 /**
@@ -14,9 +16,10 @@ export type WorkItem = {
  */
 export const work: WorkItem[] = [
   {
-    title: "Ridgeline Roofing",
-    meta: "5 pages · quote form · Google profile",
-    image: "/images/work/ridgeline-roofing.jpg",
+    title: "Bowfishing Association of America",
+    meta: "Non-profit membership site · online sign-ups · events",
+    image: "/images/work/bowfishing-association.jpg",
+    url: "https://www.bowfishingassociation.com",
   },
   {
     title: "Magnolia Salon",
