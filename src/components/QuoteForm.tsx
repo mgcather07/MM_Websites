@@ -66,10 +66,25 @@ export default function QuoteForm() {
 
     setStatus("sending");
     try {
-      const res = await fetch("/api/quote", {
+      // Formsubmit (free, no backend) emails the lead straight to site.email.
+      // Field labels below become the rows in the notification email.
+      const res = await fetch(`https://formsubmit.co/ajax/${site.email}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          Name: form.name,
+          Business: form.business,
+          Phone: form.phone,
+          email: form.email, // lowercase: Formsubmit uses this as the reply-to
+          "What they need": form.need,
+          Details: form.details,
+          _subject: `New quote request — ${form.name}${
+            form.business ? ` (${form.business})` : ""
+          }`,
+          _template: "table",
+          _captcha: "false",
+          _honey: form.website, // honeypot: Formsubmit drops the message if filled
+        }),
       });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       setStatus("success");

@@ -22,10 +22,10 @@ export const work: WorkItem[] = [
     url: "https://www.bowfishingassociation.com",
   },
   {
-    title: "Mandy Makeup",
+    title: "Lumière Beauty Studio",
     meta: "Bridal makeup studio · portfolio · online booking",
-    image: "/images/work/mandy-makeup.jpg",
-    url: "https://mandymakeup.web.app",
+    image: "/images/work/lumiere-beauty.jpg",
+    url: "https://lumierebeauty.web.app",
   },
   {
     title: "Cather Lawn & Land",
