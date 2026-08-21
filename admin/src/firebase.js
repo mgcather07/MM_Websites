@@ -22,7 +22,7 @@ export const app = initializeApp(firebaseConfig);
 // App Check (reCAPTCHA v3) — attaches an attestation token so only the real
 // admin app can hit Firebase once enforcement is on. No-op until a real site
 // key is pasted here (we'll set it up near the end, like BAA).
-const APPCHECK_SITE_KEY = "REPLACE_WITH_RECAPTCHA_V3_SITE_KEY";
+const APPCHECK_SITE_KEY = "6LcA3pAtAAAAAPRUdCDmN70r1DvDwdDhwJkOVVdO";
 if (APPCHECK_SITE_KEY && !APPCHECK_SITE_KEY.startsWith("REPLACE")) {
   try {
     initializeAppCheck(app, {
