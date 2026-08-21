@@ -6,6 +6,7 @@ import {
   push,
   set,
   update,
+  remove,
   runTransaction,
 } from "firebase/database";
 import { db } from "../firebase";
@@ -150,6 +151,19 @@ export default function QuoteEdit() {
       setSavedId(target);
     }
     setBusy(false);
+  }
+
+  async function handleDelete() {
+    const target = savedId || id;
+    if (!target) return;
+    if (
+      !window.confirm(
+        "Delete this quote permanently? The shareable link will stop working.",
+      )
+    )
+      return;
+    await remove(ref(db, "quotes/" + target));
+    navigate("/quotes", { replace: true });
   }
 
   const link = savedId ? QUOTE_LINK_BASE + savedId : null;
@@ -331,6 +345,11 @@ export default function QuoteEdit() {
         </section>
 
         <div className="save-bar">
+          {(id || savedId) && (
+            <button type="button" className="btn-delete" onClick={handleDelete}>
+              Delete quote
+            </button>
+          )}
           <button className="btn btn-maroon" disabled={busy}>
             {busy ? "Saving…" : id || savedId ? "Save changes" : "Create quote"}
           </button>

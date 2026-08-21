@@ -636,6 +636,23 @@ h2 {
   padding: 16px 0;
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
+}
+.btn-delete {
+  margin-right: auto;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--warn);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-delete:hover {
+  border-color: var(--warn);
+  background: var(--warn-soft);
 }
 .add-form {
   display: flex;
