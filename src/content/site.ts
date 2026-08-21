@@ -11,8 +11,7 @@ export const site = {
   // Contact
   phone: "(205) 914-1019",
   phoneHref: "tel:+12059141019",
-  // Temporary working inbox — will move to a branded address later.
-  email: "mandywatts37@gmail.com",
+  email: "MMWebsites26@gmail.com",
 } as const;
 
 export const nav = [

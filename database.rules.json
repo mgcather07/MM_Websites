@@ -43,6 +43,7 @@
         "phone": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "email": { ".validate": "newData.isString() && newData.val().length <= 200" },
         "need": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60" },
+        "currentUrl": { ".validate": "newData.isString() && newData.val().length <= 300" },
         "details": { ".validate": "newData.isString() && newData.val().length <= 5000" },
         "status": { ".validate": "newData.isString() && newData.val().length <= 20" },
         "source": { ".validate": "newData.isString() && newData.val().length <= 60" },

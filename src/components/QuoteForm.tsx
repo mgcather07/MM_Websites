@@ -15,6 +15,7 @@ const empty: LeadInput = {
   phone: "",
   email: "",
   need: "",
+  currentUrl: "",
   details: "",
   website: "",
 };
@@ -75,6 +76,8 @@ export default function QuoteForm() {
     setStatus("sending");
     try {
       // Primary: write the lead into the admin dashboard (Realtime Database).
+      const isRedesign = form.need === "Redesign of my current site";
+      const currentUrl = form.currentUrl?.trim();
       const leadRef = push(ref(rtdb, "leads"));
       await rtdbSet(leadRef, {
         name: form.name.trim(),
@@ -82,6 +85,7 @@ export default function QuoteForm() {
         phone: form.phone.trim(),
         email: form.email.trim(),
         need: form.need,
+        ...(isRedesign && currentUrl ? { currentUrl } : {}),
         details: form.details.trim(),
         status: "new",
         source: "website-quote-form",
@@ -99,6 +103,7 @@ export default function QuoteForm() {
           Phone: form.phone,
           email: form.email, // lowercase: Formsubmit uses this as the reply-to
           "What they need": form.need,
+          ...(isRedesign && currentUrl ? { "Current website": currentUrl } : {}),
           Details: form.details,
           _subject: `New quote request — ${form.name}${
             form.business ? ` (${form.business})` : ""
@@ -234,7 +239,7 @@ export default function QuoteForm() {
               </Field>
             </div>
 
-            <Field id={fieldId("need")} label="What do you need?" error={errors.need}>
+            <Field id={fieldId("need")} label="What can we help with?" error={errors.need}>
               <select
                 id={fieldId("need")}
                 value={form.need}
@@ -253,6 +258,19 @@ export default function QuoteForm() {
                 ))}
               </select>
             </Field>
+
+            {form.need === "Redesign of my current site" && (
+              <Field id={fieldId("currentUrl")} label="Your current website">
+                <input
+                  id={fieldId("currentUrl")}
+                  type="text"
+                  inputMode="url"
+                  placeholder="yoursite.com"
+                  value={form.currentUrl ?? ""}
+                  onChange={set("currentUrl")}
+                />
+              </Field>
+            )}
 
             <Field id={fieldId("details")} label="Tell us about it">
               <textarea

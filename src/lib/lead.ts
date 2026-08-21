@@ -21,6 +21,8 @@ export type LeadInput = {
   phone: string;
   email: string;
   need: string;
+  /** Link to their existing site — shown only when need is a redesign. */
+  currentUrl?: string;
   details: string;
   /** Honeypot — must stay empty. Bots fill it. */
   website?: string;

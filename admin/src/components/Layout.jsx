@@ -32,7 +32,7 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
-            M&amp;M
+            <img src="/images/logo/mm-mark.png" alt="" />
           </span>
           <div className="brand-text">
             <strong>M&amp;M Admin</strong>

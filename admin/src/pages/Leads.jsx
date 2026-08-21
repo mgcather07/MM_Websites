@@ -121,6 +121,20 @@ export default function Leads() {
                   )}
                 </div>
 
+                {lead.currentUrl && (
+                  <div className="lead-current">
+                    Current site:{" "}
+                    <a
+                      className="link"
+                      href={/^https?:\/\//.test(lead.currentUrl) ? lead.currentUrl : "https://" + lead.currentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {lead.currentUrl}
+                    </a>
+                  </div>
+                )}
+
                 {lead.details && <p className="lead-details">{lead.details}</p>}
 
                 <div className="lead-actions">
