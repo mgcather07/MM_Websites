@@ -15,7 +15,7 @@ const description =
 
 // Live site URL. Update this (and it flows to canonical / OG image URLs)
 // when the custom domain (e.g. mmwebsites.com) is connected.
-const siteUrl = "https://mm-websites.web.app";
+const siteUrl = "https://mmwebsites.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
