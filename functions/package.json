@@ -1,0 +1,14 @@
+{
+  "name": "mm-functions",
+  "description": "M&M Websites Cloud Functions — Stripe checkout + webhook",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0",
+    "stripe": "^17.5.0"
+  }
+}

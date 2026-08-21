@@ -18,6 +18,7 @@ type Quote = {
   terms?: string;
   feesNote?: string;
   supportNote?: string;
+  amountPaid?: number;
   createdAt?: number;
 };
 
@@ -35,9 +36,14 @@ function itemList(items: Quote["items"]): QuoteItem[] {
 export default function QuotePage() {
   const [id, setId] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null | undefined>(undefined);
+  const [justPaid, setJustPaid] = useState(false);
+  const [paying, setPaying] = useState<string | null>(null);
+  const [payError, setPayError] = useState("");
 
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("id");
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("id");
+    setJustPaid(params.get("paid") === "1");
     setId(q);
     if (!q) {
       setQuote(null);
@@ -49,6 +55,26 @@ export default function QuotePage() {
       () => setQuote(null),
     );
   }, []);
+
+  async function pay(mode: "deposit" | "full") {
+    setPaying(mode);
+    setPayError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quoteId: id, mode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(data.error || "Checkout failed");
+      window.location.href = data.url;
+    } catch {
+      setPayError(
+        "Sorry — we couldn't start checkout. Please try again, or call us and we'll help.",
+      );
+      setPaying(null);
+    }
+  }
 
   if (quote === undefined) {
     return <div className={styles.state}>Loading quote…</div>;
@@ -67,6 +93,10 @@ export default function QuotePage() {
 
   const items = itemList(quote.items);
   const total = items.reduce((sum, it) => sum + Number(it.price || 0), 0);
+  const amountPaid = Number(quote.amountPaid || 0);
+  const remaining = Math.max(0, total - amountPaid);
+  const deposit = Math.round(total * 0.4);
+  const isPaid = quote.status === "paid" || remaining <= 0;
 
   return (
     <div className={styles.wrap}>
@@ -158,6 +188,74 @@ export default function QuotePage() {
           <p className={styles.tagline}>Professional Websites. Built for Business.</p>
         </footer>
       </article>
+
+      {isPaid ? (
+        <div className={styles.paidCard}>
+          <div className={styles.paidCheck}>✓</div>
+          <div>
+            <div className={styles.paidTitle}>Paid in full — thank you!</div>
+            <div className={styles.paidSub}>
+              We&apos;ll be in touch to get your project moving.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.payCard}>
+          {justPaid && (
+            <div className={styles.confirming}>
+              Confirming your payment… this page updates automatically once it
+              clears.
+            </div>
+          )}
+          <h2 className={styles.payTitle}>
+            {amountPaid > 0 ? "Balance remaining" : "Ready to get started?"}
+          </h2>
+          <p className={styles.paySub}>
+            {amountPaid > 0 ? (
+              <>
+                Deposit received: <strong>{money(amountPaid)}</strong>. Balance
+                due: <strong>{money(remaining)}</strong>.
+              </>
+            ) : (
+              <>Pay securely by card. Your project starts as soon as your deposit clears.</>
+            )}
+          </p>
+
+          {payError && <div className={styles.payError}>{payError}</div>}
+
+          <div className={styles.payButtons}>
+            {amountPaid > 0 ? (
+              <button
+                className={styles.payPrimary}
+                disabled={!!paying}
+                onClick={() => pay("full")}
+              >
+                {paying ? "Starting…" : `Pay remaining balance · ${money(remaining)}`}
+              </button>
+            ) : (
+              <>
+                <button
+                  className={styles.payPrimary}
+                  disabled={!!paying}
+                  onClick={() => pay("deposit")}
+                >
+                  {paying === "deposit"
+                    ? "Starting…"
+                    : `Accept & pay 40% deposit · ${money(deposit)}`}
+                </button>
+                <button
+                  className={styles.paySecondary}
+                  disabled={!!paying}
+                  onClick={() => pay("full")}
+                >
+                  {paying === "full" ? "Starting…" : `Pay in full · ${money(total)}`}
+                </button>
+              </>
+            )}
+          </div>
+          <p className={styles.paySecure}>🔒 Secure payment powered by Stripe</p>
+        </div>
+      )}
     </div>
   );
 }

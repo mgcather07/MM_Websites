@@ -301,8 +301,124 @@
   }
 }
 
+/* Pay / paid cards (screen only) */
+.payCard,
+.paidCard {
+  max-width: 840px;
+  margin: 20px auto 0;
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+.payTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1d1f21;
+}
+.paySub {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #4c5155;
+}
+.payButtons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.payPrimary {
+  background: #7a1b2e;
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px 26px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.payPrimary:hover:not(:disabled) {
+  background: #661624;
+}
+.paySecondary {
+  background: transparent;
+  color: #7a1b2e;
+  border: 1.5px solid #d9d6d2;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.paySecondary:hover:not(:disabled) {
+  border-color: #7a1b2e;
+}
+.payPrimary:disabled,
+.paySecondary:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.paySecure {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #8a8f94;
+}
+.payError {
+  margin-top: 14px;
+  background: #f7ece2;
+  color: #b4632a;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.confirming {
+  margin-bottom: 16px;
+  background: #eef6f1;
+  color: #2e7d5b;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.paidCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.paidCheck {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: #2e7d5b;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.paidTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1d1f21;
+}
+.paidSub {
+  font-size: 15px;
+  color: #6b7076;
+  margin-top: 2px;
+}
+
 /* Print — clean PDF */
 @media print {
+  .payCard,
+  .paidCard {
+    display: none;
+  }
   .wrap {
     background: #fff;
     padding: 0;

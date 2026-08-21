@@ -6,12 +6,17 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "public": "out",
     "cleanUrls": true,
     "trailingSlash": false,
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/README.md", "**/.gitkeep"],
     "rewrites": [
+      { "source": "/api/checkout", "function": "createQuoteCheckout" },
+      { "source": "/api/stripe-webhook", "function": "stripeWebhook" },
       { "source": "/admin/**", "destination": "/admin/index.html" }
     ]
   }
