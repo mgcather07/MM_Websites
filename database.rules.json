@@ -54,6 +54,17 @@
       }
     },
 
+    // Quotes. Admins read the whole list and write; a specific quote is
+    // publicly readable by its (unguessable) id, so a client can open the
+    // shareable link without signing in. Only admins can create/edit.
+    "quotes": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$id": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+      }
+    },
+
     // Counters (e.g. next client number), admin-only.
     "_meta": {
       ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
