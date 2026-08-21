@@ -30,6 +30,29 @@
       ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
     },
 
+    // Quote-form inbox. A public visitor (unauthenticated) may CREATE a new
+    // lead but cannot read, edit, or delete. Admins have full access. Field
+    // validation + no-unknown-keys keeps junk out; App Check locks it further.
+    "leads": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$id": {
+        ".write": "(!data.exists() && auth == null) || (auth != null && root.child('admins').child(auth.uid).exists())",
+        ".validate": "newData.hasChildren(['name','need','createdAt']) && ((newData.child('phone').isString() && newData.child('phone').val().length > 0) || (newData.child('email').isString() && newData.child('email').val().length > 0))",
+        "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+        "business": { ".validate": "newData.isString() && newData.val().length <= 160" },
+        "phone": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "email": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "need": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60" },
+        "details": { ".validate": "newData.isString() && newData.val().length <= 5000" },
+        "status": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "source": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "clientId": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "handledAt": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
+
     // Counters (e.g. next client number), admin-only.
     "_meta": {
       ".read": "auth != null && root.child('admins').child(auth.uid).exists()",

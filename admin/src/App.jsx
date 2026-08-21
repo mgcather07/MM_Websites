@@ -4,6 +4,7 @@ import { RequireAuth } from "./auth/guards";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Leads from "./pages/Leads";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 
@@ -21,6 +22,7 @@ export default function App() {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="leads" element={<Leads />} />
             <Route path="clients" element={<Clients />} />
             <Route path="clients/:id" element={<ClientDetail />} />
             <Route path="*" element={<Navigate to="/" replace />} />

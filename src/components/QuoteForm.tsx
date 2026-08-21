@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import { ref, push, set as rtdbSet } from "firebase/database";
+import { rtdb } from "@/lib/firebaseClient";
 import { site } from "@/content/site";
 import { needOptions, validateLead, type FieldErrors, type LeadInput } from "@/lib/lead";
 import styles from "./QuoteForm.module.css";
@@ -64,11 +66,31 @@ export default function QuoteForm() {
       return;
     }
 
+    // Honeypot: bots fill this. Pretend success without recording anything.
+    if (form.website?.trim()) {
+      setStatus("success");
+      return;
+    }
+
     setStatus("sending");
     try {
-      // Formsubmit (free, no backend) emails the lead straight to site.email.
-      // Field labels below become the rows in the notification email.
-      const res = await fetch(`https://formsubmit.co/ajax/${site.email}`, {
+      // Primary: write the lead into the admin dashboard (Realtime Database).
+      const leadRef = push(ref(rtdb, "leads"));
+      await rtdbSet(leadRef, {
+        name: form.name.trim(),
+        business: form.business.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        need: form.need,
+        details: form.details.trim(),
+        status: "new",
+        source: "website-quote-form",
+        createdAt: Date.now(),
+      });
+
+      // Best-effort: also email the studio via Formsubmit so nothing is missed.
+      // Don't fail the submission if the email hiccups — the lead is already saved.
+      void fetch(`https://formsubmit.co/ajax/${site.email}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
@@ -83,10 +105,9 @@ export default function QuoteForm() {
           }`,
           _template: "table",
           _captcha: "false",
-          _honey: form.website, // honeypot: Formsubmit drops the message if filled
         }),
-      });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      }).catch(() => {});
+
       setStatus("success");
     } catch {
       setStatus("error");

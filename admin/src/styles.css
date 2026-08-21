@@ -497,6 +497,130 @@ h2 {
   color: var(--muted);
 }
 
+/* Nav badge ------------------------------------------------ */
+.nav-badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--maroon);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  vertical-align: middle;
+}
+.side-nav a.active .nav-badge {
+  background: var(--maroon);
+  color: #fff;
+}
+
+/* Tabs ----------------------------------------------------- */
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+}
+.tab {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.tab-on {
+  background: var(--white);
+  color: var(--maroon);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.tab-count {
+  display: inline-block;
+  margin-left: 6px;
+  background: var(--maroon);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+/* Leads ---------------------------------------------------- */
+.lead-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lead {
+  margin-bottom: 0;
+}
+.lead-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lead-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+.lead-contact {
+  font-weight: 500;
+  color: var(--gray-600);
+}
+.lead-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.lead-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.lead-details {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.lead-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Dashboard leads banner ----------------------------------- */
+.leads-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f4e7ea;
+  border: 1px solid var(--maroon-tint);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.leads-banner .t {
+  font-weight: 700;
+  color: var(--maroon);
+}
+
 /* Responsive ----------------------------------------------- */
 @media (max-width: 760px) {
   .shell {

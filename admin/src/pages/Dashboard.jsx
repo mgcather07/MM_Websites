@@ -8,12 +8,18 @@ export default function Dashboard() {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [newLeads, setNewLeads] = useState(0);
 
   useEffect(() => {
     const subs = [
       onValue(ref(db, "clients"), (s) => setClients(toList(s.val()))),
       onValue(ref(db, "projects"), (s) => setProjects(toList(s.val()))),
       onValue(ref(db, "payments"), (s) => setPayments(toList(s.val()))),
+      onValue(ref(db, "leads"), (s) =>
+        setNewLeads(
+          toList(s.val()).filter((l) => (l.status || "new") === "new").length,
+        ),
+      ),
     ];
     return () => subs.forEach((u) => u());
   }, []);
@@ -39,6 +45,17 @@ export default function Dashboard() {
           View clients
         </Link>
       </header>
+
+      {newLeads > 0 && (
+        <div className="leads-banner">
+          <span className="t">
+            📨 {newLeads} new {newLeads === 1 ? "lead" : "leads"} from the website
+          </span>
+          <Link to="/leads" className="btn btn-maroon btn-sm">
+            Review leads
+          </Link>
+        </div>
+      )}
 
       <div className="tiles">
         <div className="tile">
