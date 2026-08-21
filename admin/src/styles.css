@@ -528,15 +528,10 @@ h2 {
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
 }
 .login-mark {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
-  background: var(--maroon);
-  color: #fff;
-  font-weight: 800;
-  font-size: 17px;
-  display: grid;
-  place-items: center;
+  width: 96px;
+  height: auto;
+  display: block;
+  margin-bottom: 2px;
 }
 .login-card h1 {
   font-size: 23px;

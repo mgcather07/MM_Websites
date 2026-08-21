@@ -33,9 +33,11 @@ export default function Login() {
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
-        <div className="login-mark" aria-hidden="true">
-          M&amp;M
-        </div>
+        <img
+          className="login-mark"
+          src="/images/logo/mm-mark.png"
+          alt="M&amp;M Websites"
+        />
         <h1>Admin sign in</h1>
         <p className="login-sub">M&amp;M Websites dashboard</p>
 
