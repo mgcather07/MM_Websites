@@ -6,7 +6,7 @@ import { toList } from "../lib/format";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Layout() {
-  const { profile, logout } = useAuth();
+  const { profile, user, logout } = useAuth();
   const navigate = useNavigate();
   const [newLeads, setNewLeads] = useState(0);
 
@@ -25,12 +25,19 @@ export default function Layout() {
     navigate("/login", { replace: true });
   };
 
+  const initial = (profile?.name || user?.email || "?").slice(0, 1).toUpperCase();
+
   return (
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">M&amp;M</span>
-          <span className="brand-word">Admin</span>
+          <span className="brand-mark" aria-hidden="true">
+            M&amp;M
+          </span>
+          <div className="brand-text">
+            <strong>M&amp;M Admin</strong>
+            <span>Management</span>
+          </div>
         </div>
 
         <nav className="side-nav" aria-label="Sections">
@@ -46,18 +53,55 @@ export default function Layout() {
 
         <div className="side-foot">
           <div className="who">
-            <div className="who-name">{profile?.name || "Admin"}</div>
-            <div className="who-role">{profile?.role || ""}</div>
+            <div className="who-avatar" aria-hidden="true">
+              {initial}
+            </div>
+            <div className="who-meta">
+              <strong>{profile?.name || user?.email}</strong>
+              <span className="who-role">
+                {profile?.role === "master" ? "Master" : "Admin"}
+              </span>
+            </div>
           </div>
-          <button className="btn btn-outline btn-sm" onClick={doLogout}>
-            Sign out
+          <button
+            className="iconbtn"
+            title="Sign out"
+            aria-label="Sign out"
+            onClick={doLogout}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
           </button>
         </div>
       </aside>
 
-      <main className="content">
-        <Outlet />
-      </main>
+      <div className="main">
+        <header className="topbar">
+          <a
+            className="topbar-view"
+            href="https://mmwebsites.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View site ↗
+          </a>
+        </header>
+        <main className="content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
