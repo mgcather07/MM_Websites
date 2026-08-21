@@ -49,3 +49,9 @@ firestore-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# admin (Vite) app
+/admin/node_modules
+/admin/dist
+# admin build output (compiled into the static site)
+/public/admin

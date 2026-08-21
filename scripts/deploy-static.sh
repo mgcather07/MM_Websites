@@ -23,6 +23,11 @@ trap restore EXIT
 mkdir -p "$STASH"
 [ -d src/app/api ] && mv src/app/api "$STASH/api"
 
+# Build the admin (Vite) app into public/admin first, so the Next static export
+# copies it into out/admin. Install deps on first run.
+[ -d admin/node_modules ] || ( cd admin && npm install )
+( cd admin && npm run build )
+
 rm -rf out .next
 STATIC_EXPORT=1 npm run build
 

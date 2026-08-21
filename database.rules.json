@@ -1,0 +1,39 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    // Any signed-in account can read the admin list (only you two have accounts —
+    // no public signup). Used for the bootstrap check and self/role lookups.
+    "admins": {
+      ".read": "auth != null",
+      "$uid": {
+        // Bootstrap: the first sign-in with no admins yet may create its own
+        // record (becomes master). After that, only a master can add/edit admins.
+        ".write": "auth != null && ((!root.child('admins').exists() && $uid === auth.uid) || root.child('admins').child(auth.uid).child('role').val() === 'master')"
+      }
+    },
+
+    // Client / CRM data — readable and writable only by a signed-in admin.
+    "clients": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+
+    "projects": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+
+    "payments": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+
+    // Counters (e.g. next client number), admin-only.
+    "_meta": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    }
+  }
+}
