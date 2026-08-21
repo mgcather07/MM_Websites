@@ -309,6 +309,11 @@ h2 {
   color: var(--maroon);
   margin: 0 0 6px;
 }
+.page-sub {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
 .back {
   display: inline-block;
   color: var(--muted);

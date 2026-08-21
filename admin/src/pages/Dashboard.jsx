@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { ref, onValue } from "firebase/database";
 import { db } from "../firebase";
 import { money, dateShort, toList } from "../lib/format";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Dashboard() {
+  const { profile } = useAuth();
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -34,12 +36,24 @@ export default function Dashboard() {
   const clientName = (id) =>
     clients.find((c) => c.id === id)?.businessName || "—";
 
+  const notes = [];
+  if (newLeads > 0)
+    notes.push(`${newLeads} new ${newLeads === 1 ? "lead" : "leads"}`);
+  if (unpaid.length > 0)
+    notes.push(
+      `${unpaid.length} unpaid ${unpaid.length === 1 ? "invoice" : "invoices"}`,
+    );
+  const subtitle = notes.length
+    ? `You have ${notes.join(" and ")} waiting.`
+    : "You're all caught up. 🎉";
+
   return (
     <div className="page">
       <header className="page-head">
         <div>
           <p className="eyebrow">Overview</p>
-          <h1>Dashboard</h1>
+          <h1>Welcome, {profile?.name || "there"}</h1>
+          <p className="page-sub">{subtitle}</p>
         </div>
         <Link to="/clients" className="btn btn-maroon">
           View clients
