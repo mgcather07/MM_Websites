@@ -9,6 +9,7 @@ export default function Layout() {
   const { profile, user, logout } = useAuth();
   const navigate = useNavigate();
   const [newLeads, setNewLeads] = useState(0);
+  const [open, setOpen] = useState(false);
 
   useEffect(
     () =>
@@ -29,7 +30,7 @@ export default function Layout() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      <aside className={"sidebar" + (open ? " is-open" : "")}>
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
             <img src="/images/logo/mm-mark.png" alt="" />
@@ -40,7 +41,11 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav className="side-nav" aria-label="Sections">
+        <nav
+          className="side-nav"
+          aria-label="Sections"
+          onClick={() => setOpen(false)}
+        >
           <NavLink to="/" end>
             Overview
           </NavLink>
@@ -87,8 +92,30 @@ export default function Layout() {
         </div>
       </aside>
 
+      {open && <div className="scrim" onClick={() => setOpen(false)} />}
+
       <div className="main">
         <header className="topbar">
+          <button
+            className="hamburger"
+            aria-label="Open menu"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
           <a
             className="topbar-view"
             href="https://mmwebsites.com"

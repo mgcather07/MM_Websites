@@ -100,6 +100,7 @@ export default function Dashboard() {
         {unpaid.length === 0 ? (
           <p className="muted">Nothing outstanding — everyone's paid up. 🎉</p>
         ) : (
+          <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
@@ -126,6 +127,7 @@ export default function Dashboard() {
                 ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>

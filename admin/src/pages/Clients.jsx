@@ -108,6 +108,7 @@ export default function Clients() {
               : "No clients match that search."}
           </p>
         ) : (
+          <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
@@ -132,6 +133,7 @@ export default function Clients() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

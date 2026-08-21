@@ -76,6 +76,7 @@ export default function ClientDetail() {
         {projects.length === 0 ? (
           <p className="muted">No projects yet.</p>
         ) : (
+          <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
@@ -108,6 +109,7 @@ export default function ClientDetail() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 
@@ -125,6 +127,7 @@ export default function ClientDetail() {
         {payments.length === 0 ? (
           <p className="muted">No invoices yet.</p>
         ) : (
+          <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
@@ -160,6 +163,7 @@ export default function ClientDetail() {
                 ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>
