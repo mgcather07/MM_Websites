@@ -9,7 +9,8 @@ import {
   remove,
   runTransaction,
 } from "firebase/database";
-import { db } from "../firebase";
+import { httpsCallable } from "firebase/functions";
+import { db, functions } from "../firebase";
 import { toList, money } from "../lib/format";
 
 const QUOTE_LINK_BASE = "https://mmwebsites.com/quote?id=";
@@ -28,7 +29,7 @@ const blankItem = () => ({ title: "", description: "", price: "" });
 const emptyForm = () => ({
   subtitle: "",
   clientId: "",
-  preparedFor: { name: "", org: "", location: "" },
+  preparedFor: { name: "", org: "", location: "", email: "" },
   summary: "",
   items: [blankItem()],
   terms: DEFAULTS.terms,
@@ -45,6 +46,8 @@ export default function QuoteEdit() {
   const [savedId, setSavedId] = useState(id || null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [emailing, setEmailing] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
 
   useEffect(
     () => onValue(ref(db, "clients"), (s) => setClients(toList(s.val()))),
@@ -67,7 +70,13 @@ export default function QuoteEdit() {
       setForm({
         subtitle: q.subtitle || "",
         clientId: q.clientId || "",
-        preparedFor: q.preparedFor || { name: "", org: "", location: "" },
+        preparedFor: {
+          name: "",
+          org: "",
+          location: "",
+          email: "",
+          ...(q.preparedFor || {}),
+        },
         summary: q.summary || "",
         items: items.length ? items : [blankItem()],
         terms: q.terms ?? DEFAULTS.terms,
@@ -104,7 +113,12 @@ export default function QuoteEdit() {
       ...f,
       clientId: cid,
       preparedFor: c
-        ? { name: c.contactName || "", org: c.businessName || "", location: f.preparedFor.location }
+        ? {
+            name: c.contactName || "",
+            org: c.businessName || "",
+            location: f.preparedFor.location,
+            email: c.email || "",
+          }
         : f.preparedFor,
     }));
   };
@@ -119,6 +133,7 @@ export default function QuoteEdit() {
         name: form.preparedFor.name.trim(),
         org: form.preparedFor.org.trim(),
         location: form.preparedFor.location.trim(),
+        email: (form.preparedFor.email || "").trim(),
       },
       summary: form.summary.trim(),
       items: form.items
@@ -178,6 +193,21 @@ export default function QuoteEdit() {
     }
   };
 
+  const emailToClient = async () => {
+    if (!savedId) return;
+    setEmailing(true);
+    setEmailMsg("");
+    try {
+      const send = httpsCallable(functions, "sendQuoteEmail");
+      const res = await send({ quoteId: savedId });
+      setEmailMsg(`✓ Sent to ${res.data.to}`);
+    } catch (e) {
+      // Callable errors carry a friendly message from the function.
+      setEmailMsg(e?.message || "Could not send. Please try again.");
+    }
+    setEmailing(false);
+  };
+
   return (
     <div className="page">
       <Link className="back" to="/quotes">
@@ -208,15 +238,36 @@ export default function QuoteEdit() {
               {copied ? "Copied!" : "Copy link"}
             </button>
             <a
-              className="btn btn-maroon btn-sm"
+              className="btn btn-outline btn-sm"
               href={link}
               target="_blank"
               rel="noreferrer"
             >
               Open
             </a>
+            <button
+              type="button"
+              className="btn btn-maroon btn-sm"
+              onClick={emailToClient}
+              disabled={emailing}
+            >
+              {emailing ? "Sending…" : "Email to client"}
+            </button>
           </div>
         </div>
+      )}
+      {emailMsg && (
+        <p
+          className="muted"
+          style={{
+            marginTop: -6,
+            marginBottom: 18,
+            fontSize: 13.5,
+            color: emailMsg.startsWith("✓") ? "#2e7d5b" : "#b4632a",
+          }}
+        >
+          {emailMsg}
+        </p>
       )}
 
       <form onSubmit={handleSubmit}>
@@ -246,10 +297,21 @@ export default function QuoteEdit() {
               <input value={form.preparedFor.org} onChange={setP("org")} placeholder="Lake Martin Ranch & Venue" />
             </label>
           </div>
-          <label className="field" style={{ marginTop: 14 }}>
-            <span>Location</span>
-            <input value={form.preparedFor.location} onChange={setP("location")} placeholder="Dadeville / Lake Martin, Alabama" />
-          </label>
+          <div className="grid-2" style={{ marginTop: 14 }}>
+            <label className="field">
+              <span>Location</span>
+              <input value={form.preparedFor.location} onChange={setP("location")} placeholder="Dadeville / Lake Martin, Alabama" />
+            </label>
+            <label className="field">
+              <span>Client email (for sending the quote)</span>
+              <input
+                type="email"
+                value={form.preparedFor.email}
+                onChange={setP("email")}
+                placeholder="cindy@lakemartinranch.com"
+              />
+            </label>
+          </div>
         </section>
 
         <section className="panel">

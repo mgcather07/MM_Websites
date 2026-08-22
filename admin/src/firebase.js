@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+import { getFunctions } from "firebase/functions";
 
 // Public web config for project mm-websites. These values are NOT secrets (they
 // identify the project to clients); real protection comes from Firebase Auth +
@@ -36,3 +37,5 @@ if (APPCHECK_SITE_KEY && !APPCHECK_SITE_KEY.startsWith("REPLACE")) {
 
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+// Cloud Functions (us-central1) — used for the "Email quote to client" action.
+export const functions = getFunctions(app);

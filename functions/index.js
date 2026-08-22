@@ -1,14 +1,19 @@
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onValueCreated } = require("firebase-functions/v2/database");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
+const mail = require("./email");
 
 admin.initializeApp();
 const db = admin.database();
 
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+
+const RTDB_INSTANCE = "mm-websites-default-rtdb";
 
 const SITE = "https://mmwebsites.com";
 const REGION = "us-central1";
@@ -101,7 +106,7 @@ exports.createQuoteCheckout = onRequest(
  * records the payment so the dashboard revenue updates automatically.
  */
 exports.stripeWebhook = onRequest(
-  { secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET], region: REGION },
+  { secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY], region: REGION },
   async (req, res) => {
     const stripe = Stripe(STRIPE_SECRET_KEY.value());
     let event;
@@ -130,9 +135,10 @@ exports.stripeWebhook = onRequest(
             const q = snap.val();
             const total = totalOf(q);
             const amountPaid = Number(q.amountPaid || 0) + amount;
+            const paidInFull = amountPaid >= total;
             await ref.update({
               amountPaid,
-              status: amountPaid >= total ? "paid" : "accepted",
+              status: paidInFull ? "paid" : "accepted",
               lastPaidAt: Date.now(),
             });
             await db.ref("payments").push({
@@ -145,13 +151,118 @@ exports.stripeWebhook = onRequest(
               invoicedAt: Date.now(),
               paidAt: Date.now(),
             });
+
+            // Receipt to the client + alert to the studio (best-effort).
+            const clientEmail =
+              (s.customer_details && s.customer_details.email) ||
+              s.customer_email ||
+              q.clientEmail ||
+              (q.preparedFor && q.preparedFor.email) ||
+              "";
+            const name =
+              (q.preparedFor && q.preparedFor.name) ||
+              (s.customer_details && s.customer_details.name) ||
+              "";
+            const info = {
+              name,
+              amount,
+              paidInFull,
+              remaining: Math.max(0, total - amountPaid),
+              quoteNumber: q.quoteNumber || "",
+              quoteId,
+            };
+            const key = RESEND_API_KEY.value();
+            const c = mail.paymentClientEmail(info);
+            const a = mail.paymentAdminEmail(info);
+            await Promise.all([
+              mail.send(key, { to: clientEmail, ...c }),
+              mail.send(key, { to: mail.STUDIO_INBOX, ...a }),
+            ]);
           }
         } catch (e) {
-          logger.error("Webhook DB update failed", e);
+          logger.error("Webhook DB update / email failed", e);
         }
       }
     }
 
     res.json({ received: true });
+  },
+);
+
+/**
+ * When a new quote-request (lead) is written to the database from the public
+ * form, send a confirmation to the customer and an alert to the studio.
+ */
+exports.onLeadCreated = onValueCreated(
+  {
+    ref: "/leads/{leadId}",
+    instance: RTDB_INSTANCE,
+    region: REGION,
+    secrets: [RESEND_API_KEY],
+  },
+  async (event) => {
+    const lead = event.data.val() || {};
+    if (lead.source && lead.source !== "website-quote-form") return;
+
+    const key = RESEND_API_KEY.value();
+    const c = mail.leadClientEmail(lead);
+    const a = mail.leadAdminEmail(lead);
+    await Promise.all([
+      mail.send(key, { to: lead.email, ...c }),
+      mail.send(key, { to: mail.STUDIO_INBOX, ...a }),
+    ]);
+  },
+);
+
+/**
+ * Email a saved quote's link to the client. Called from the admin "Email to
+ * client" button (authenticated admin only). Reads the client's email from the
+ * quote (or the linked client record), sends the branded quote email, and marks
+ * the quote as sent.
+ */
+exports.sendQuoteEmail = onCall(
+  { secrets: [RESEND_API_KEY], region: REGION },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Please sign in.");
+    }
+    const adminSnap = await db.ref("admins/" + request.auth.uid).get();
+    if (!adminSnap.exists()) {
+      throw new HttpsError("permission-denied", "Admins only.");
+    }
+    const quoteId = request.data && request.data.quoteId;
+    if (!quoteId) {
+      throw new HttpsError("invalid-argument", "Missing quoteId.");
+    }
+    const snap = await db.ref("quotes/" + quoteId).get();
+    if (!snap.exists()) {
+      throw new HttpsError("not-found", "Quote not found.");
+    }
+    const q = snap.val();
+
+    let email = (q.preparedFor && q.preparedFor.email) || "";
+    if (!email && q.clientId) {
+      const c = await db.ref("clients/" + q.clientId).get();
+      if (c.exists()) email = (c.val() && c.val().email) || "";
+    }
+    if (!email) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No client email on this quote. Add the client's email, save, then send.",
+      );
+    }
+
+    const link = `${SITE}/quote?id=${quoteId}`;
+    const msg = mail.quoteEmail(q, link);
+    const ok = await mail.send(RESEND_API_KEY.value(), { to: email, ...msg });
+    if (!ok) {
+      throw new HttpsError("internal", "Email failed to send. Please try again.");
+    }
+
+    await db.ref("quotes/" + quoteId).update({
+      emailedAt: Date.now(),
+      ...(q.status === "draft" ? { status: "sent" } : {}),
+    });
+    return { ok: true, to: email };
   },
 );
