@@ -170,6 +170,159 @@ button {
   transform: scale(0.99);
 }
 
+/* ==========================================================================
+   Motion layer (from the Claude Design animation handoff).
+   Additive: rules only apply where their classes are added. The
+   prefers-reduced-motion block below stays LAST so it always wins.
+   ========================================================================== */
+
+:root {
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur-mid: 260ms;
+  --dur-slow: 700ms;
+}
+
+@keyframes mmUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mmIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes mmImg {
+  from { opacity: 0; transform: translateY(28px) scale(1.04); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mmSheen {
+  0%        { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(320%); }
+}
+@keyframes mmUnderline {
+  from { background-size: 0 5px; }
+  to   { background-size: 100% 5px; }
+}
+@keyframes mmDrift {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(0, -14px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Hero entrance — staggered, runs once on load */
+.mm-hero-pill  { animation: mmUp 640ms var(--ease-out-soft)  60ms both; }
+.mm-hero-title { animation: mmUp 780ms var(--ease-out-soft) 140ms both; }
+.mm-hero-body  { animation: mmUp 780ms var(--ease-out-soft) 240ms both; }
+.mm-hero-cta   { animation: mmUp 780ms var(--ease-out-soft) 340ms both; }
+.mm-hero-img   { animation: mmImg 900ms var(--ease-out-soft) 220ms both; }
+.mm-proof > li:nth-child(1) { animation: mmUp 620ms ease-out 480ms both; }
+.mm-proof > li:nth-child(2) { animation: mmUp 620ms ease-out 580ms both; }
+.mm-proof > li:nth-child(3) { animation: mmUp 620ms ease-out 680ms both; }
+.mm-nav-in { animation: mmIn 500ms ease-out both; }
+
+/* Hero decoration */
+.mm-hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  animation: mmDrift 14s ease-in-out infinite;
+}
+.mm-hero-glow-a {
+  width: 520px; height: 520px; top: -180px; right: -120px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.09), rgba(255,255,255,0) 70%);
+}
+.mm-hero-glow-b {
+  width: 380px; height: 380px; bottom: -160px; left: -80px;
+  animation-duration: 18s;
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.18), rgba(0,0,0,0) 70%);
+}
+
+/* Drawn underline for "Starting at $500." */
+.mm-underline {
+  background-image: linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.55));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 5px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: mmUnderline 700ms var(--ease-out-soft) 900ms both;
+}
+
+/* Slow sheen across the hero's primary CTA */
+.mm-sheen {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 38%;
+  pointer-events: none;
+  background: linear-gradient(100deg,
+    rgba(122,27,46,0) 0%, rgba(122,27,46,0.16) 50%, rgba(122,27,46,0) 100%);
+  animation: mmSheen 3.4s ease-in-out 1.6s infinite;
+}
+
+/* Sticky nav condense — toggled by Nav.tsx on scroll */
+.mm-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: padding 220ms ease-out, box-shadow 220ms ease-out;
+}
+.mm-nav-tight {
+  padding-block: 12px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+/* Hover / press polish */
+@media (min-width: 1024px) {
+  .btn-white:hover,
+  .btn-outline:hover,
+  .btn-maroon:hover { transform: translateY(-3px); }
+  .btn-maroon:hover { box-shadow: 0 12px 24px rgba(122, 27, 46, 0.28); }
+  .btn-white:hover  { box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3); }
+
+  .mm-mark { transition: transform 200ms ease-out; }
+  .mm-mark:hover { transform: rotate(-4deg) scale(1.06); }
+
+  .mm-navlink {
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid transparent;
+    transition: color var(--dur-fast) ease-out, border-color var(--dur-fast) ease-out;
+  }
+  .mm-navlink:hover { color: #fff; border-bottom-color: #fff; }
+}
+.btn:active { transform: scale(0.99); }
+
+/* Service cards lift on hover */
+.mm-card-lift {
+  transition: transform 200ms var(--ease-out-soft), box-shadow 200ms ease-out, border-color 200ms ease-out;
+}
+@media (min-width: 1024px) {
+  .mm-card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.09);
+    border-color: #c9c4bc;
+  }
+}
+
+/* Process step numbers pop in when their column reveals */
+.mm-step-num {
+  transform: scale(0.6);
+  opacity: 0;
+  transition: transform 520ms var(--ease-pop), opacity 320ms ease-out;
+}
+.mm-step-num[data-shown="true"] { transform: scale(1); opacity: 1; }
+
+/* Form focus ring */
+.mm-field {
+  transition: border-color var(--dur-fast) ease-out, box-shadow var(--dur-fast) ease-out;
+}
+.mm-field:focus {
+  border-color: var(--maroon);
+  box-shadow: 0 0 0 3px rgba(122, 27, 46, 0.16);
+}
+
+/* Work thumbnails already scale on hover in Work.module.css — not duplicated here. */
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -178,4 +331,7 @@ button {
     transition: none !important;
     animation: none !important;
   }
+  /* Make sure JS/animation-driven states are visible when motion is off. */
+  .mm-underline { background-size: 100% 5px; }
+  .mm-step-num { transform: none; opacity: 1; }
 }

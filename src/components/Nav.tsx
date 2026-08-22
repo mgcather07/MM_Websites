@@ -1,14 +1,28 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { nav, site } from "@/content/site";
 import styles from "./Nav.module.css";
 
 export default function Nav() {
+  const [tight, setTight] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setTight(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className={styles.nav}>
+    <header
+      className={`${styles.nav} mm-nav mm-nav-in ${tight ? "mm-nav-tight" : ""}`}
+    >
       <div className={`container ${styles.inner}`}>
         <a href="#top" className={styles.logo} aria-label={`${site.name} home`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size logo mark */}
           <img
-            className={styles.mark}
+            className={`${styles.mark} mm-mark`}
             src="/images/logo/mm-mark.png"
             alt=""
             width={61}
@@ -19,7 +33,7 @@ export default function Nav() {
 
         <nav className={styles.links} aria-label="Primary">
           {nav.map((item) => (
-            <a key={item.href} href={item.href} className={styles.link}>
+            <a key={item.href} href={item.href} className={`${styles.link} mm-navlink`}>
               {item.label}
             </a>
           ))}

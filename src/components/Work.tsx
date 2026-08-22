@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import ImageSlot from "./ImageSlot";
+import Reveal from "./Reveal";
 import { work, type WorkItem } from "@/content/work";
 import styles from "./Work.module.css";
 
@@ -16,18 +17,22 @@ export default function Work() {
   return (
     <section id="work" className={`band ${styles.section}`} aria-labelledby="work-title">
       <div className="container">
-        <div className={styles.header}>
-          <div className={styles.headerText}>
-            <span className={styles.eyebrow}>Our work</span>
-            <h2 id="work-title" className={styles.title}>
-              Recent builds
-            </h2>
+        <Reveal>
+          <div className={styles.header}>
+            <div className={styles.headerText}>
+              <span className={styles.eyebrow}>Our work</span>
+              <h2 id="work-title" className={styles.title}>
+                Recent builds
+              </h2>
+            </div>
           </div>
-        </div>
+        </Reveal>
 
         <div className={styles.grid}>
-          {work.map((item) => (
-            <Card key={item.title} item={item} />
+          {work.map((item, i) => (
+            <Reveal key={item.title} delay={i * 90} distance={26}>
+              <Card item={item} />
+            </Reveal>
           ))}
         </div>
       </div>

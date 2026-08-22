@@ -5,6 +5,7 @@ import { ref, push, set as rtdbSet } from "firebase/database";
 import { rtdb } from "@/lib/firebaseClient";
 import { site } from "@/content/site";
 import { needOptions, validateLead, type FieldErrors, type LeadInput } from "@/lib/lead";
+import Reveal from "./Reveal";
 import styles from "./QuoteForm.module.css";
 
 type Status = "idle" | "invalid" | "sending" | "success" | "error";
@@ -91,27 +92,8 @@ export default function QuoteForm() {
         source: "website-quote-form",
         createdAt: Date.now(),
       });
-
-      // Best-effort: also email the studio via Formsubmit so nothing is missed.
-      // Don't fail the submission if the email hiccups — the lead is already saved.
-      void fetch(`https://formsubmit.co/ajax/${site.email}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          Name: form.name,
-          Business: form.business,
-          Phone: form.phone,
-          email: form.email, // lowercase: Formsubmit uses this as the reply-to
-          "What they need": form.need,
-          ...(isRedesign && currentUrl ? { "Current website": currentUrl } : {}),
-          Details: form.details,
-          _subject: `New quote request — ${form.name}${
-            form.business ? ` (${form.business})` : ""
-          }`,
-          _template: "table",
-          _captcha: "false",
-        }),
-      }).catch(() => {});
+      // The onLeadCreated Cloud Function emails the client a confirmation and
+      // alerts the studio (via Resend) as soon as this lead is written.
 
       setStatus("success");
     } catch {
@@ -125,6 +107,7 @@ export default function QuoteForm() {
     <section id="quote" className={`band ${styles.section}`} aria-labelledby="quote-title">
       <div className={`container ${styles.grid}`}>
         {/* Left — pitch + contact */}
+        <Reveal>
         <div className={styles.info}>
           <h2 id="quote-title" className={`h2 ${styles.title}`}>
             Get a free quote
@@ -143,14 +126,22 @@ export default function QuoteForm() {
             </p>
           </div>
         </div>
+        </Reveal>
 
         {/* Right — form card, or success confirmation */}
+        <Reveal delay={120}>
         {status === "success" ? (
-          <div className={styles.confirm} role="status" aria-live="polite">
+          <div
+            className={styles.confirm}
+            role="status"
+            aria-live="polite"
+            style={{ animation: "mmUp 420ms var(--ease-out-soft) both" }}
+          >
             <p className={styles.confirmLead}>Thanks — we got it.</p>
             <p className={styles.confirmBody}>
-              We&apos;ll text or email you a flat price, usually within one
-              business day.
+              We&apos;ll review your details and be in touch soon — usually
+              within one business day. We may follow up with a few questions
+              before we put your quote together.
             </p>
             <p className={styles.confirmContact}>
               Call or text · <a href={site.phoneHref}>{site.phone}</a>
@@ -299,6 +290,7 @@ export default function QuoteForm() {
             </button>
           </form>
         )}
+        </Reveal>
       </div>
     </section>
   );

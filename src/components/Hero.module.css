@@ -1,4 +1,6 @@
 .hero {
+  position: relative;
+  overflow: hidden;
   background: var(--maroon);
   padding: 52px var(--band-x) 64px;
 }
@@ -56,6 +58,8 @@
 }
 
 .primary {
+  position: relative;
+  overflow: hidden;
   font-size: 16px;
   font-weight: 700;
   padding: 16px 28px;
