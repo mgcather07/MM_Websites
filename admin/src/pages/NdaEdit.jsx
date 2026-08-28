@@ -126,7 +126,14 @@ export default function NdaEdit() {
   async function handleDelete() {
     const target = savedId || id;
     if (!target) return;
-    if (!window.confirm("Delete this NDA permanently? The link will stop working.")) return;
+    const isSigned = !!saved?.signature;
+    const msg = isSigned
+      ? "⚠️ This NDA has been SIGNED. Deleting it permanently destroys the executed agreement and breaks the client's link — this cannot be undone.\n\nDelete this signed agreement anyway?"
+      : "Delete this NDA permanently? The link will stop working.";
+    if (!window.confirm(msg)) return;
+    if (isSigned && !window.confirm("Are you sure? A signed agreement is a legal record. Delete it?")) {
+      return;
+    }
     await remove(ref(db, "ndas/" + target));
     navigate("/ndas", { replace: true });
   }
