@@ -57,6 +57,15 @@ export default function NdaEdit() {
     [],
   );
 
+  // Pre-fill a new NDA's M&M signatory from Settings → Document defaults.
+  useEffect(() => {
+    if (id) return;
+    return onValue(ref(db, "settings/defaults/ndaSignatory"), (s) => {
+      const v = s.val();
+      if (v) setForm((f) => (f.providerSignatory ? f : { ...f, providerSignatory: v }));
+    });
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     return onValue(ref(db, "ndas/" + id), (s) => {

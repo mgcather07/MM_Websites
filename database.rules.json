@@ -114,6 +114,12 @@
       ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
     },
 
+    // Business settings / document defaults — admin-only.
+    "settings": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+
     // Counters (e.g. next client number), admin-only.
     "_meta": {
       ".read": "auth != null && root.child('admins').child(auth.uid).exists()",

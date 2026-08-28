@@ -14,6 +14,7 @@ import NdaEdit from "./pages/NdaEdit";
 import Analytics from "./pages/Analytics";
 import Projects from "./pages/Projects";
 import Domains from "./pages/Domains";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="projects" element={<Projects />} />
             <Route path="domains" element={<Domains />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
