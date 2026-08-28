@@ -15,6 +15,37 @@ export const needOptions: NeedOption[] = [
   "Not sure yet",
 ];
 
+/** Optional extras that help us scope and prioritize a quote. */
+export const featureOptions = [
+  "Contact form",
+  "Online booking / scheduling",
+  "Online store",
+  "Photo gallery",
+  "Customer reviews",
+  "Blog / news",
+  "Multiple locations",
+] as const;
+
+export const timelineOptions = [
+  "As soon as possible",
+  "In the next month",
+  "1–3 months",
+  "Just exploring for now",
+] as const;
+
+export const budgetOptions = [
+  "Not sure yet",
+  "$500 – $1,000",
+  "$1,000 – $2,500",
+  "$2,500+",
+] as const;
+
+export const assetsOptions = [
+  "I have a logo and photos ready",
+  "I have some of it",
+  "I'll need help with logo and photos",
+] as const;
+
 export type LeadInput = {
   name: string;
   business: string;
@@ -23,6 +54,14 @@ export type LeadInput = {
   need: string;
   /** Link to their existing site — shown only when need is a redesign. */
   currentUrl?: string;
+  /** Features they want on the site (checkbox group). */
+  features?: string[];
+  /** How soon they need it. */
+  timeline?: string;
+  /** Rough budget. */
+  budget?: string;
+  /** Whether they have a logo/photos ready. */
+  assets?: string;
   details: string;
   /** Honeypot — must stay empty. Bots fill it. */
   website?: string;

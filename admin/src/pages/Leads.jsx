@@ -135,6 +135,31 @@ export default function Leads() {
                   </div>
                 )}
 
+                {(lead.features?.length || lead.timeline || lead.budget || lead.assets) && (
+                  <div className="lead-details" style={{ display: "grid", gap: 3 }}>
+                    {lead.features?.length ? (
+                      <div>
+                        <b>Wants:</b> {lead.features.join(", ")}
+                      </div>
+                    ) : null}
+                    {lead.timeline ? (
+                      <div>
+                        <b>Timeline:</b> {lead.timeline}
+                      </div>
+                    ) : null}
+                    {lead.budget ? (
+                      <div>
+                        <b>Budget:</b> {lead.budget}
+                      </div>
+                    ) : null}
+                    {lead.assets ? (
+                      <div>
+                        <b>Logo/photos:</b> {lead.assets}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
                 {lead.details && <p className="lead-details">{lead.details}</p>}
 
                 <div className="lead-actions">

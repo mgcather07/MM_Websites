@@ -141,6 +141,11 @@ function leadClientEmail(lead) {
     p("Here's what you sent us:") +
     rows([
       ["What you need", lead.need],
+      [
+        "Features",
+        Array.isArray(lead.features) ? lead.features.join(", ") : lead.features,
+      ],
+      ["Timeline", lead.timeline],
       ["Current website", lead.currentUrl],
       ["Details", lead.details],
     ]) +
@@ -152,6 +157,9 @@ function leadClientEmail(lead) {
 }
 
 function leadAdminEmail(lead) {
+  const features = Array.isArray(lead.features)
+    ? lead.features.join(", ")
+    : lead.features;
   const inner =
     h("New quote request") +
     rows([
@@ -160,6 +168,10 @@ function leadAdminEmail(lead) {
       ["Phone", lead.phone],
       ["Email", lead.email],
       ["Needs", lead.need],
+      ["Wants", features],
+      ["Timeline", lead.timeline],
+      ["Budget", lead.budget],
+      ["Logo/photos", lead.assets],
       ["Current site", lead.currentUrl],
       ["Details", lead.details],
     ]) +

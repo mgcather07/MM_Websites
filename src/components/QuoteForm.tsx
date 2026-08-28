@@ -4,7 +4,16 @@ import { useId, useRef, useState } from "react";
 import { ref, push, set as rtdbSet } from "firebase/database";
 import { rtdb } from "@/lib/firebaseClient";
 import { site } from "@/content/site";
-import { needOptions, validateLead, type FieldErrors, type LeadInput } from "@/lib/lead";
+import {
+  needOptions,
+  featureOptions,
+  timelineOptions,
+  budgetOptions,
+  assetsOptions,
+  validateLead,
+  type FieldErrors,
+  type LeadInput,
+} from "@/lib/lead";
 import Reveal from "./Reveal";
 import styles from "./QuoteForm.module.css";
 
@@ -17,6 +26,10 @@ const empty: LeadInput = {
   email: "",
   need: "",
   currentUrl: "",
+  features: [],
+  timeline: "",
+  budget: "",
+  assets: "",
   details: "",
   website: "",
 };
@@ -47,6 +60,17 @@ export default function QuoteForm() {
         return next;
       });
     };
+
+  const toggleFeature = (value: string) =>
+    setForm((f) => {
+      const current = f.features ?? [];
+      return {
+        ...f,
+        features: current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value],
+      };
+    });
 
   const validateNow = () => {
     const next = validateLead(form);
@@ -79,6 +103,7 @@ export default function QuoteForm() {
       // Primary: write the lead into the admin dashboard (Realtime Database).
       const isRedesign = form.need === "Redesign of my current site";
       const currentUrl = form.currentUrl?.trim();
+      const features = form.features ?? [];
       const leadRef = push(ref(rtdb, "leads"));
       await rtdbSet(leadRef, {
         name: form.name.trim(),
@@ -87,6 +112,10 @@ export default function QuoteForm() {
         email: form.email.trim(),
         need: form.need,
         ...(isRedesign && currentUrl ? { currentUrl } : {}),
+        ...(features.length ? { features } : {}),
+        ...(form.timeline ? { timeline: form.timeline } : {}),
+        ...(form.budget ? { budget: form.budget } : {}),
+        ...(form.assets ? { assets: form.assets } : {}),
         details: form.details.trim(),
         status: "new",
         source: "website-quote-form",
@@ -262,6 +291,75 @@ export default function QuoteForm() {
                 />
               </Field>
             )}
+
+            <div className={styles.field}>
+              <span className={styles.label}>
+                What do you need on your site?{" "}
+                <span className={styles.optional}>(optional)</span>
+              </span>
+              <div className={styles.checks}>
+                {featureOptions.map((f) => (
+                  <label key={f} className={styles.check}>
+                    <input
+                      type="checkbox"
+                      checked={form.features?.includes(f) ?? false}
+                      onChange={() => toggleFeature(f)}
+                    />
+                    {f}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <Field id={fieldId("timeline")} label="How soon do you need it?">
+                <select
+                  id={fieldId("timeline")}
+                  value={form.timeline}
+                  onChange={set("timeline")}
+                  className={form.timeline ? "" : styles.placeholder}
+                >
+                  <option value="">Select one…</option>
+                  {timelineOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field id={fieldId("budget")} label="Rough budget?">
+                <select
+                  id={fieldId("budget")}
+                  value={form.budget}
+                  onChange={set("budget")}
+                  className={form.budget ? "" : styles.placeholder}
+                >
+                  <option value="">Select one…</option>
+                  {budgetOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+
+            <Field id={fieldId("assets")} label="Do you have a logo and photos?">
+              <select
+                id={fieldId("assets")}
+                value={form.assets}
+                onChange={set("assets")}
+                className={form.assets ? "" : styles.placeholder}
+              >
+                <option value="">Select one…</option>
+                {assetsOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
             <Field id={fieldId("details")} label="Tell us about it">
               <textarea
