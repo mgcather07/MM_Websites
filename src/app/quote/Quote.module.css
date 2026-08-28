@@ -184,6 +184,29 @@
   font-variant-numeric: tabular-nums;
 }
 
+.breakdown {
+  margin: 18px 48px 0;
+  border-top: 1px solid #e6e4e1;
+  padding-top: 12px;
+}
+.breakRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  font-size: 15.5px;
+  color: #3a3e42;
+  padding: 5px 4px;
+}
+.breakRow span:last-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.breakDiscount {
+  color: #2e7d5b;
+}
+
 .total {
   margin: 26px 48px 0;
   background: #1f2328;
@@ -262,7 +285,8 @@
     padding-left: 18px;
     padding-right: 18px;
   }
-  .rule {
+  .rule,
+  .breakdown {
     margin-left: 22px;
     margin-right: 22px;
   }

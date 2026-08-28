@@ -18,6 +18,8 @@ type Quote = {
   terms?: string;
   feesNote?: string;
   supportNote?: string;
+  discountPercent?: number;
+  discountReason?: string;
   amountPaid?: number;
   createdAt?: number;
 };
@@ -92,7 +94,11 @@ export default function QuotePage() {
   }
 
   const items = itemList(quote.items);
-  const total = items.reduce((sum, it) => sum + Number(it.price || 0), 0);
+  const subtotal = items.reduce((sum, it) => sum + Number(it.price || 0), 0);
+  const discountPct = Number(quote.discountPercent || 0);
+  const discountAmount =
+    discountPct > 0 ? Math.round((subtotal * discountPct) / 100) : 0;
+  const total = subtotal - discountAmount;
   const amountPaid = Number(quote.amountPaid || 0);
   const remaining = Math.max(0, total - amountPaid);
   const deposit = Math.round(total * 0.4);
@@ -167,9 +173,31 @@ export default function QuotePage() {
           ))}
         </div>
 
+        {discountPct > 0 && (
+          <div className={styles.breakdown}>
+            <div className={styles.breakRow}>
+              <span>Subtotal</span>
+              <span>{money(subtotal)}</span>
+            </div>
+            <div className={`${styles.breakRow} ${styles.breakDiscount}`}>
+              <span>
+                Discount
+                {quote.discountReason ? ` — ${quote.discountReason}` : ""} (
+                {discountPct}%)
+              </span>
+              <span>−{money(discountAmount)}</span>
+            </div>
+          </div>
+        )}
+
         <div className={styles.total}>
           <div>
             <div className={styles.totalLabel}>Complete Project Total</div>
+            {discountPct > 0 && quote.discountReason && (
+              <div className={styles.terms}>
+                Includes your {discountPct}% discount — {quote.discountReason}.
+              </div>
+            )}
             {quote.terms && <div className={styles.terms}>{quote.terms}</div>}
             {quote.feesNote && <div className={styles.fees}>{quote.feesNote}</div>}
           </div>

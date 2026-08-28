@@ -35,6 +35,8 @@ const emptyForm = () => ({
   terms: DEFAULTS.terms,
   feesNote: DEFAULTS.feesNote,
   supportNote: DEFAULTS.supportNote,
+  discountPercent: "",
+  discountReason: "",
   status: "draft",
 });
 
@@ -82,13 +84,18 @@ export default function QuoteEdit() {
         terms: q.terms ?? DEFAULTS.terms,
         feesNote: q.feesNote ?? DEFAULTS.feesNote,
         supportNote: q.supportNote ?? DEFAULTS.supportNote,
+        discountPercent: q.discountPercent == null ? "" : String(q.discountPercent),
+        discountReason: q.discountReason ?? "",
         status: q.status || "draft",
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const total = form.items.reduce((s, it) => s + Number(it.price || 0), 0);
+  const subtotal = form.items.reduce((s, it) => s + Number(it.price || 0), 0);
+  const discountPct = Number(form.discountPercent) || 0;
+  const discountAmt = discountPct > 0 ? Math.round((subtotal * discountPct) / 100) : 0;
+  const total = subtotal - discountAmt;
 
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const setP = (k) => (e) =>
@@ -146,6 +153,8 @@ export default function QuoteEdit() {
       terms: form.terms.trim(),
       feesNote: form.feesNote.trim(),
       supportNote: form.supportNote.trim(),
+      discountPercent: Number(form.discountPercent) || 0,
+      discountReason: discountPct > 0 ? form.discountReason.trim() : "",
       status: form.status,
       updatedAt: Date.now(),
     };
@@ -375,10 +384,58 @@ export default function QuoteEdit() {
               </div>
             ))}
           </div>
-          <div className="qtotal-row">
-            <span>Total</span>
-            <span className="quote-total">{money(total)}</span>
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              marginTop: 16,
+              alignItems: "flex-end",
+              flexWrap: "wrap",
+            }}
+          >
+            <label className="field" style={{ maxWidth: 150 }}>
+              <span>Discount %</span>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value={form.discountPercent}
+                onChange={setF("discountPercent")}
+                placeholder="0"
+              />
+            </label>
+            <label className="field" style={{ flex: 1, minWidth: 220 }}>
+              <span>Reason for discount (shown on the quote)</span>
+              <input
+                value={form.discountReason}
+                onChange={setF("discountReason")}
+                placeholder="e.g. Friends &amp; family, referral, off-season rate"
+              />
+            </label>
           </div>
+
+          {discountPct > 0 ? (
+            <>
+              <div className="qtotal-row" style={{ borderBottom: "none", paddingBottom: 2 }}>
+                <span className="muted">Subtotal</span>
+                <span>{money(subtotal)}</span>
+              </div>
+              <div className="qtotal-row" style={{ borderTop: "none", paddingTop: 2, paddingBottom: 2 }}>
+                <span className="muted">Discount ({discountPct}%)</span>
+                <span style={{ color: "#2e7d5b" }}>−{money(discountAmt)}</span>
+              </div>
+              <div className="qtotal-row" style={{ borderTop: "none" }}>
+                <span>Total</span>
+                <span className="quote-total">{money(total)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="qtotal-row">
+              <span>Total</span>
+              <span className="quote-total">{money(total)}</span>
+            </div>
+          )}
         </section>
 
         <section className="panel">

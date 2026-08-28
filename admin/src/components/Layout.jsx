@@ -55,6 +55,7 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/clients">Clients</NavLink>
           <NavLink to="/quotes">Quotes</NavLink>
+          <NavLink to="/ndas">NDAs</NavLink>
         </nav>
 
         <div className="side-foot">

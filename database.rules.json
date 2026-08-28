@@ -71,6 +71,22 @@
         ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
       }
     },
+    "ndas": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$id": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+        "signature": {
+          ".write": "(!data.exists() && auth == null) || (auth != null && root.child('admins').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['name','agreedAt'])",
+          "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+          "agree": { ".validate": "newData.isBoolean()" },
+          "agreedAt": { ".validate": "newData.isNumber()" },
+          "userAgent": { ".validate": "newData.isString() && newData.val().length <= 400" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
 
     // Counters (e.g. next client number), admin-only.
     "_meta": {

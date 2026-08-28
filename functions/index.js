@@ -25,6 +25,13 @@ function itemsOf(q) {
 function totalOf(q) {
   return itemsOf(q).reduce((s, it) => s + Number((it && it.price) || 0), 0);
 }
+/** The amount actually owed: item subtotal minus any percentage discount. */
+function discountedTotalOf(q) {
+  const subtotal = totalOf(q);
+  const pct = Number((q && q.discountPercent) || 0);
+  if (!(pct > 0)) return subtotal;
+  return Math.round(subtotal * (1 - pct / 100));
+}
 
 /**
  * Create a Stripe Checkout Session for a quote. The browser sends only the
@@ -52,7 +59,7 @@ exports.createQuoteCheckout = onRequest(
         return;
       }
       const q = snap.val();
-      const total = totalOf(q);
+      const total = discountedTotalOf(q);
       const amountPaid = Number(q.amountPaid || 0);
 
       let amount;
@@ -133,7 +140,7 @@ exports.stripeWebhook = onRequest(
           const snap = await ref.get();
           if (snap.exists()) {
             const q = snap.val();
-            const total = totalOf(q);
+            const total = discountedTotalOf(q);
             const amountPaid = Number(q.amountPaid || 0) + amount;
             const paidInFull = amountPaid >= total;
             await ref.update({
@@ -264,5 +271,96 @@ exports.sendQuoteEmail = onCall(
       ...(q.status === "draft" ? { status: "sent" } : {}),
     });
     return { ok: true, to: email };
+  },
+);
+
+/**
+ * Email an NDA's signing link to the client (admin "Email to client" button).
+ */
+exports.sendNdaEmail = onCall(
+  { secrets: [RESEND_API_KEY], region: REGION },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Please sign in.");
+    }
+    const adminSnap = await db.ref("admins/" + request.auth.uid).get();
+    if (!adminSnap.exists()) {
+      throw new HttpsError("permission-denied", "Admins only.");
+    }
+    const ndaId = request.data && request.data.ndaId;
+    if (!ndaId) {
+      throw new HttpsError("invalid-argument", "Missing ndaId.");
+    }
+    const snap = await db.ref("ndas/" + ndaId).get();
+    if (!snap.exists()) {
+      throw new HttpsError("not-found", "NDA not found.");
+    }
+    const nda = snap.val();
+    const email = (nda.preparedFor && nda.preparedFor.email) || "";
+    if (!email) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No client email on this NDA. Add the client's email, save, then send.",
+      );
+    }
+
+    const link = `${SITE}/nda?id=${ndaId}`;
+    const msg = mail.ndaInviteEmail(nda, link);
+    const ok = await mail.send(RESEND_API_KEY.value(), { to: email, ...msg });
+    if (!ok) {
+      throw new HttpsError("internal", "Email failed to send. Please try again.");
+    }
+
+    await db.ref("ndas/" + ndaId).update({
+      emailedAt: Date.now(),
+      ...(nda.status === "draft" ? { status: "sent" } : {}),
+    });
+    return { ok: true, to: email };
+  },
+);
+
+/**
+ * When a client e-signs an NDA, mark it signed and notify both sides.
+ */
+exports.onNdaSigned = onValueCreated(
+  {
+    ref: "/ndas/{ndaId}/signature",
+    instance: RTDB_INSTANCE,
+    region: REGION,
+    secrets: [RESEND_API_KEY],
+  },
+  async (event) => {
+    const ndaId = event.params.ndaId;
+    const sig = event.data.val() || {};
+    const ref = db.ref("ndas/" + ndaId);
+    const snap = await ref.get();
+    if (!snap.exists()) return;
+    const nda = snap.val();
+
+    // The signer's email is bound authoritatively to the address the NDA was
+    // issued to — set here (admin) so a signer can't submit or change it.
+    const boundEmail = (nda.preparedFor && nda.preparedFor.email) || "";
+    await ref.update({
+      status: "signed",
+      signedAt: Date.now(),
+      ...(boundEmail ? { "signature/email": boundEmail } : {}),
+    });
+
+    const link = `${SITE}/nda?id=${ndaId}`;
+    const info = {
+      ndaNumber: nda.ndaNumber,
+      name: sig.name,
+      email: boundEmail,
+      org: nda.preparedFor && nda.preparedFor.org,
+      link,
+    };
+    const key = RESEND_API_KEY.value();
+    const clientEmail = (nda.preparedFor && nda.preparedFor.email) || "";
+    await Promise.all([
+      mail.send(key, { to: mail.STUDIO_INBOX, ...mail.ndaSignedAdminEmail(info) }),
+      clientEmail
+        ? mail.send(key, { to: clientEmail, ...mail.ndaSignedClientEmail(info) })
+        : Promise.resolve(),
+    ]);
   },
 );

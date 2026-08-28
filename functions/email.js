@@ -15,6 +15,7 @@ const logger = require("firebase-functions/logger");
 // Branded sender (mmwebsites.com must be verified in Resend). Replies to the
 // studio's real inbox so a customer can just hit "reply".
 const FROM = "M&M Websites <quotes@mmwebsites.com>";
+const NDA_FROM = "M&M Websites <nda@mmwebsites.com>";
 const REPLY_TO = "MMWebsites26@gmail.com";
 const STUDIO_INBOX = "MMWebsites26@gmail.com";
 const SITE = "https://mmwebsites.com";
@@ -106,8 +107,22 @@ function totalOf(q) {
 function quoteEmail(quote, link) {
   const pf = quote.preparedFor || {};
   const first = String(pf.name || "").trim().split(/\s+/)[0] || "there";
-  const total = totalOf(quote);
+  const subtotal = totalOf(quote);
+  const pct = Number(quote.discountPercent || 0);
+  const discountAmt = pct > 0 ? Math.round((subtotal * pct) / 100) : 0;
+  const total = subtotal - discountAmt;
   const lineRows = itemsOf(quote).map((it) => [it.title || "Item", money(it.price)]);
+  const summaryRows =
+    pct > 0
+      ? [
+          ["Subtotal", money(subtotal)],
+          [
+            `Discount${quote.discountReason ? " — " + quote.discountReason : ""} (${pct}%)`,
+            "−" + money(discountAmt),
+          ],
+          ["Project total", money(total)],
+        ]
+      : [["Project total", money(total)]];
   const inner =
     h(`Your project quote is ready, ${first}`) +
     p(
@@ -117,7 +132,7 @@ function quoteEmail(quote, link) {
         quote.subtitle ? ` for <strong>${esc(quote.subtitle)}</strong>` : ""
       }.`,
     ) +
-    rows([["Quote", quote.quoteNumber], ...lineRows, ["Project total", money(total)]]) +
+    rows([["Quote", quote.quoteNumber], ...lineRows, ...summaryRows]) +
     p(btn(link, "View & accept your quote")) +
     p(
       "You can review the full details and accept online — a 40% deposit gets us started, or you're welcome to pay in full.",
@@ -246,12 +261,12 @@ function paymentAdminEmail({ name, amount, paidInFull, remaining, quoteNumber, q
  * Send one email. Never throws — logs and resolves false on failure so callers
  * (a lead save, a payment webhook) are never broken by an email problem.
  */
-async function send(apiKey, { to, subject, html, replyTo }) {
+async function send(apiKey, { to, subject, html, replyTo, from }) {
   if (!to) return false;
   try {
     const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
-      from: FROM,
+      from: from || FROM,
       to,
       subject,
       html,
@@ -268,6 +283,60 @@ async function send(apiKey, { to, subject, html, replyTo }) {
   }
 }
 
+function ndaInviteEmail(nda, link) {
+  const pf = nda.preparedFor || {};
+  const first = String(pf.name || "").trim().split(/\s+/)[0] || "there";
+  const inner =
+    h(`A confidentiality agreement for your review, ${first}`) +
+    p(
+      "Before we dig into your project, we want you to know your business information is safe with us. Please take a minute to review and sign this short confidentiality agreement — it confirms that M&amp;M Websites will keep everything you share private.",
+    ) +
+    p(btn(link, "Review & sign")) +
+    p(
+      "Just read it and type your name to sign. Questions? Reply to this email or call (205) 914-1019.<br/>Michael &amp; Mandy · M&amp;M Websites",
+    );
+  return {
+    from: NDA_FROM,
+    subject: "Please review & sign — Confidentiality Agreement · M&M Websites",
+    html: shell("Confidentiality agreement", inner),
+  };
+}
+
+function ndaSignedAdminEmail(info) {
+  const inner =
+    h("NDA signed ✅") +
+    rows([
+      ["Signed by", info.name],
+      ["Email", info.email],
+      ["Business", info.org],
+      ["NDA", info.ndaNumber],
+    ]) +
+    p(btn(info.link, "View the signed NDA"));
+  return {
+    from: NDA_FROM,
+    subject: `NDA signed — ${info.name || "client"}${info.org ? ` (${info.org})` : ""}`,
+    html: shell("NDA signed", inner),
+  };
+}
+
+function ndaSignedClientEmail(info) {
+  const first = String(info.name || "").trim().split(/\s+/)[0] || "there";
+  const inner =
+    h(`Thanks, ${first} — your agreement is signed.`) +
+    p(
+      "Your confidentiality agreement with M&amp;M Websites is now signed and on file. Your business information is safe with us.",
+    ) +
+    p(btn(info.link, "View your signed agreement")) +
+    p(
+      "You can print or save that page for your records anytime.<br/>Michael &amp; Mandy · M&amp;M Websites",
+    );
+  return {
+    from: NDA_FROM,
+    subject: "Your confidentiality agreement is signed · M&M Websites",
+    html: shell("Agreement signed", inner),
+  };
+}
+
 module.exports = {
   send,
   STUDIO_INBOX,
@@ -276,4 +345,7 @@ module.exports = {
   leadAdminEmail,
   paymentClientEmail,
   paymentAdminEmail,
+  ndaInviteEmail,
+  ndaSignedAdminEmail,
+  ndaSignedClientEmail,
 };

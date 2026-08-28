@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Archivo, Dancing_Script } from "next/font/google";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -7,6 +7,14 @@ const archivo = Archivo({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-archivo",
+  display: "swap",
+});
+
+// Handwriting-style face used for e-signatures on the quote/NDA sheets.
+const signature = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-signature",
   display: "swap",
 });
 
@@ -64,7 +72,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={archivo.variable}>
+    <html lang="en" className={`${archivo.variable} ${signature.variable}`}>
       <body>{children}</body>
     </html>
   );

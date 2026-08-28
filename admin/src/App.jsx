@@ -9,6 +9,8 @@ import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Quotes from "./pages/Quotes";
 import QuoteEdit from "./pages/QuoteEdit";
+import Ndas from "./pages/Ndas";
+import NdaEdit from "./pages/NdaEdit";
 
 export default function App() {
   return (
@@ -30,6 +32,9 @@ export default function App() {
             <Route path="quotes" element={<Quotes />} />
             <Route path="quotes/new" element={<QuoteEdit />} />
             <Route path="quotes/:id" element={<QuoteEdit />} />
+            <Route path="ndas" element={<Ndas />} />
+            <Route path="ndas/new" element={<NdaEdit />} />
+            <Route path="ndas/:id" element={<NdaEdit />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

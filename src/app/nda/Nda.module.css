@@ -1,0 +1,437 @@
+.wrap {
+  min-height: 100vh;
+  background: #eceae7;
+  padding: 28px 16px 60px;
+  font-family: var(--font-archivo), -apple-system, system-ui, sans-serif;
+  color: #1d1f21;
+}
+
+.state {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  color: #4c5155;
+  padding: 40px 20px;
+}
+.state h1 {
+  font-size: 28px;
+  color: #1d1f21;
+}
+.state a {
+  color: #7a1b2e;
+  font-weight: 700;
+}
+
+.actions {
+  max-width: 840px;
+  margin: 0 auto 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+.printBtn {
+  background: #7a1b2e;
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.printBtn:hover {
+  background: #661624;
+}
+
+.sheet {
+  max-width: 840px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+.topbar {
+  height: 14px;
+  background: #6b1524;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px 48px 8px;
+}
+.logo {
+  width: 200px;
+  height: auto;
+  display: block;
+}
+.headRight {
+  text-align: right;
+}
+.title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.05;
+  color: #1d1f21;
+}
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #6b7076;
+}
+
+.rule {
+  border: none;
+  border-top: 1px solid #e3e1de;
+  margin: 20px 48px 0;
+}
+
+.parties {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 48px 0;
+}
+.by {
+  text-align: right;
+}
+.label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #6b7076;
+}
+.partyName {
+  margin: 8px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: #1d1f21;
+}
+.partySub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #6b7076;
+}
+
+.effective {
+  margin: 20px 48px 0;
+  font-size: 15px;
+  color: #3a3e42;
+}
+
+.body {
+  padding: 8px 48px 0;
+}
+.para {
+  margin: 16px 0 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #2f3336;
+  white-space: pre-wrap;
+}
+
+.signatures {
+  display: flex;
+  gap: 40px;
+  padding: 30px 48px 0;
+  flex-wrap: wrap;
+}
+.sigBlock {
+  flex: 1;
+  min-width: 220px;
+}
+.sigLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #6b7076;
+}
+/* The signature rests ON this line; the printed name sits below it. */
+.sigLine {
+  margin-top: 8px;
+  border-bottom: 1.5px solid #1d1f21;
+  min-height: 50px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+.sigName {
+  margin: 6px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1f21;
+}
+.sigScript {
+  margin: 0;
+  font-family: var(--font-signature), "Segoe Script", "Bradley Hand", cursive;
+  font-size: 36px;
+  line-height: 1;
+  color: #1d1f21;
+  word-break: break-word;
+}
+.sigSub {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: #6b7076;
+}
+.sigPending {
+  margin: 0;
+  font-size: 14px;
+  font-style: italic;
+  color: #b3aca3;
+}
+
+/* Live signature preview in the sign form */
+.sigPreview {
+  margin-top: 14px;
+  border: 1px dashed #d9d6d2;
+  border-radius: 10px;
+  padding: 8px 16px 10px;
+  background: #faf9f7;
+}
+.sigPreviewLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #8a8f94;
+  margin-bottom: 2px;
+}
+.sigPreview .sigScript {
+  font-size: 32px;
+  margin: 0;
+}
+
+.foot {
+  padding: 26px 48px 34px;
+}
+.tagline {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #7a1b2e;
+}
+
+/* Sign / signed cards (screen only) */
+.signCard,
+.signedCard {
+  max-width: 840px;
+  margin: 20px auto 0;
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+.signHead {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1d1f21;
+}
+.signIntro {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #4c5155;
+}
+.signField {
+  display: block;
+  margin-top: 18px;
+}
+.signField span {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a3e42;
+  margin-bottom: 7px;
+}
+.signField input {
+  width: 100%;
+  font-family: inherit;
+  border: 1px solid #d9d6d2;
+  padding: 13px 14px;
+  font-size: 16px;
+  color: #1d1f21;
+  background: #fff;
+  border-radius: 8px;
+  outline: none;
+}
+.signField input:focus {
+  border-color: #7a1b2e;
+  box-shadow: 0 0 0 3px rgba(122, 27, 46, 0.16);
+}
+
+/* Read-only "signing as" line — bound to the NDA's address, not editable. */
+.signBound {
+  margin-top: 16px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  background: #f4f2f0;
+  border: 1px solid #e3e1de;
+  border-radius: 8px;
+  padding: 11px 14px;
+}
+.signBoundLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #8a8f94;
+}
+.signBoundEmail {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1d1f21;
+  word-break: break-word;
+}
+.agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #3a3e42;
+  cursor: pointer;
+}
+.agree input {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  margin-top: 1px;
+  accent-color: #7a1b2e;
+  cursor: pointer;
+}
+.signBtn {
+  margin-top: 20px;
+  background: #7a1b2e;
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px 28px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.signBtn:hover:not(:disabled) {
+  background: #661624;
+}
+.signBtn:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.signSecure {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: #8a8f94;
+}
+.signError {
+  margin-top: 14px;
+  background: #f7ece2;
+  color: #b4632a;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.signedCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.signedCheck {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: #2e7d5b;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.signedTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1d1f21;
+}
+.signedSub {
+  font-size: 15px;
+  color: #6b7076;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+  .head,
+  .parties,
+  .rule,
+  .effective,
+  .body,
+  .signatures,
+  .foot {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .rule,
+  .effective {
+    margin-left: 24px;
+    margin-right: 24px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .headRight {
+    text-align: left;
+  }
+  .parties {
+    flex-direction: column;
+  }
+  .by {
+    text-align: left;
+  }
+}
+
+@media print {
+  .signCard,
+  .signedCard,
+  .actions {
+    display: none;
+  }
+  .wrap {
+    background: #fff;
+    padding: 0;
+  }
+  .sheet {
+    box-shadow: none;
+    border-radius: 0;
+    max-width: none;
+  }
+  .topbar {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
