@@ -47,7 +47,7 @@ export default function Layout() {
           onClick={() => setOpen(false)}
         >
           <NavLink to="/" end>
-            Overview
+            Dashboard
           </NavLink>
           <NavLink to="/leads">
             Leads
