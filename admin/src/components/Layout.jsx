@@ -54,8 +54,11 @@ export default function Layout() {
             {newLeads > 0 && <span className="nav-badge">{newLeads}</span>}
           </NavLink>
           <NavLink to="/clients">Clients</NavLink>
+          <NavLink to="/projects">Projects</NavLink>
           <NavLink to="/quotes">Quotes</NavLink>
           <NavLink to="/ndas">NDAs</NavLink>
+          <NavLink to="/domains">Domains</NavLink>
+          <NavLink to="/analytics">Analytics</NavLink>
         </nav>
 
         <div className="side-foot">

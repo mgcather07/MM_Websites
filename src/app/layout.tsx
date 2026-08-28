@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Dancing_Script } from "next/font/google";
 import { site } from "@/content/site";
+import PageView from "@/components/PageView";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -73,7 +74,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${archivo.variable} ${signature.variable}`}>
-      <body>{children}</body>
+      <body>
+        <PageView />
+        {children}
+      </body>
     </html>
   );
 }

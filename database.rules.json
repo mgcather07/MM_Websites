@@ -88,6 +88,32 @@
       }
     },
 
+    // First-party website analytics. Public visitors CREATE pageview events
+    // (no read); a Cloud Function rolls them up into daily/summary aggregates
+    // and deletes the raw event. Only admins read the aggregates.
+    "analytics": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "events": {
+        "$id": {
+          ".write": "!data.exists() && auth == null",
+          ".validate": "newData.hasChildren(['page','ts'])",
+          "page": { ".validate": "newData.isString() && newData.val().length <= 60" },
+          "ref": { ".validate": "newData.isString() && newData.val().length <= 30" },
+          "ts": { ".validate": "newData.isNumber()" },
+          "w": { ".validate": "newData.isNumber()" },
+          "sid": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "newSession": { ".validate": "newData.isBoolean()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    // Client domains / hosting tracker — admin-only.
+    "domains": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+
     // Counters (e.g. next client number), admin-only.
     "_meta": {
       ".read": "auth != null && root.child('admins').child(auth.uid).exists()",

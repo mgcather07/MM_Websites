@@ -364,3 +364,42 @@ exports.onNdaSigned = onValueCreated(
     ]);
   },
 );
+
+/**
+ * Roll each raw pageview event into daily + summary aggregates, then delete the
+ * raw event so /analytics/events never grows unbounded. The admin reads only
+ * the small aggregates.
+ */
+exports.onAnalyticsEvent = onValueCreated(
+  { ref: "/analytics/events/{id}", instance: RTDB_INSTANCE, region: REGION },
+  async (event) => {
+    const ev = event.data.val() || {};
+    const ts = Number(ev.ts) || Date.now();
+    const date = new Date(ts).toISOString().slice(0, 10);
+    const w = Number(ev.w) || 0;
+    const device = w > 0 && w < 768 ? "mobile" : "desktop";
+    const safe = (s, max) =>
+      String(s || "")
+        .replace(/[.#$/[\]]/g, "-")
+        .slice(0, max) || "unknown";
+    const page = safe(ev.page || "home", 60);
+    const src = safe(ev.ref || "direct", 30);
+    const inc = admin.database.ServerValue.increment(1);
+
+    const updates = {};
+    updates[`analytics/daily/${date}/pageviews`] = inc;
+    updates[`analytics/daily/${date}/pages/${page}`] = inc;
+    updates[`analytics/daily/${date}/refs/${src}`] = inc;
+    updates[`analytics/daily/${date}/devices/${device}`] = inc;
+    updates[`analytics/summary/pageviews`] = inc;
+    if (ev.newSession) {
+      updates[`analytics/daily/${date}/visits`] = inc;
+      updates[`analytics/summary/visits`] = inc;
+    }
+    updates[`analytics/summary/updatedAt`] = ts;
+    // Drop the processed raw event.
+    updates[`analytics/events/${event.params.id}`] = null;
+
+    await db.ref().update(updates);
+  },
+);

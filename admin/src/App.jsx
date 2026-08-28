@@ -11,6 +11,9 @@ import Quotes from "./pages/Quotes";
 import QuoteEdit from "./pages/QuoteEdit";
 import Ndas from "./pages/Ndas";
 import NdaEdit from "./pages/NdaEdit";
+import Analytics from "./pages/Analytics";
+import Projects from "./pages/Projects";
+import Domains from "./pages/Domains";
 
 export default function App() {
   return (
@@ -35,6 +38,9 @@ export default function App() {
             <Route path="ndas" element={<Ndas />} />
             <Route path="ndas/new" element={<NdaEdit />} />
             <Route path="ndas/:id" element={<NdaEdit />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="domains" element={<Domains />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
