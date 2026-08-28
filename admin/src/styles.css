@@ -945,4 +945,60 @@ h2 {
   .lead-actions {
     flex-wrap: wrap;
   }
+
+  /* Share box (NDA / quote link + action buttons) — stack full-width so the
+     buttons never run off the screen. */
+  .share-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .share-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .share-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .share-url {
+    max-width: 100%;
+  }
+
+  /* Save bar — primary action on top, delete below, both full width. */
+  .save-bar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .save-bar .btn,
+  .save-bar .btn-delete {
+    width: 100%;
+    margin-right: 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Page-head action button gets breathing room under the stacked title. */
+  .page-head .btn {
+    margin-top: 12px;
+  }
+
+  /* Tabs (Leads new/all, quote Details/Roster/Results) wrap instead of clipping. */
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  /* Keep any wide inline form controls from forcing horizontal scroll. */
+  .field input,
+  .field select,
+  .field textarea {
+    max-width: 100%;
+  }
+}
+
+/* Very narrow phones — single-column stat tiles. */
+@media (max-width: 430px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
 }
