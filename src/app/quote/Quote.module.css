@@ -207,6 +207,62 @@
   color: #2e7d5b;
 }
 
+/* Phased quotes — document sheet */
+.phaseNote {
+  margin: 22px 48px 0;
+  background: #f6efe1;
+  border-left: 4px solid #b98a2e;
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #5a4a24;
+}
+.phaseBlock {
+  margin-top: 26px;
+}
+.phaseBar {
+  margin: 0 48px;
+  background: #6b1524;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 22px;
+  border-radius: 8px 8px 0 0;
+}
+.phaseBarName {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.phaseTag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: #2e7d5b;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.phaseBarPrice {
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.phaseSummary {
+  margin: 12px 48px 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #5a5f64;
+}
+
 .total {
   margin: 26px 48px 0;
   background: #1f2328;
@@ -271,7 +327,8 @@
   .itemsHead,
   .items,
   .total,
-  .foot {
+  .foot,
+  .phaseSummary {
     padding-left: 22px;
     padding-right: 22px;
     margin-left: 0;
@@ -279,7 +336,9 @@
   }
   .summary,
   .itemsHead,
-  .total {
+  .total,
+  .phaseNote,
+  .phaseBar {
     margin-left: 22px;
     margin-right: 22px;
     padding-left: 18px;
@@ -401,13 +460,75 @@
   border-radius: 8px;
 }
 .confirming {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   background: #eef6f1;
   color: #2e7d5b;
   font-size: 14px;
   font-weight: 600;
   padding: 10px 14px;
   border-radius: 8px;
+}
+.confirmCard {
+  padding: 16px 20px;
+}
+
+/* Per-phase payment cards (screen only) */
+.phasePayStack {
+  max-width: 840px;
+  margin: 20px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.phasePayCard {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 26px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+.phasePayHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.phasePayName {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1d1f21;
+}
+.phasePayPrice {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #7a1b2e;
+  font-variant-numeric: tabular-nums;
+}
+.phasePaidBadge {
+  flex: none;
+  font-size: 13px;
+  font-weight: 800;
+  color: #2e7d5b;
+  background: #eef6f1;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.phaseDueBadge {
+  flex: none;
+  font-size: 13px;
+  font-weight: 800;
+  color: #b4632a;
+  background: #f7ece2;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.phasePaySub {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #4c5155;
 }
 .paidCard {
   display: flex;

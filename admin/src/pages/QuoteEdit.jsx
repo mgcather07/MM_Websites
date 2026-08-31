@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ref,
   onValue,
@@ -26,12 +26,28 @@ const DEFAULTS = {
 
 const blankItem = () => ({ title: "", description: "", price: "" });
 
+// A stable id lets a phase be paid independently (Stripe metadata carries it)
+// and survive re-ordering/edits without losing its payment progress.
+const newPhaseId = () =>
+  "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const blankPhase = (name = "") => ({
+  id: newPhaseId(),
+  name,
+  summary: "",
+  items: [blankItem()],
+});
+
 const emptyForm = () => ({
   subtitle: "",
   clientId: "",
   preparedFor: { name: "", org: "", location: "", email: "" },
   summary: "",
+  phased: false,
   items: [blankItem()],
+  phases: [
+    blankPhase("Phase 1 — Website Design & Development"),
+    blankPhase("Phase 2 —"),
+  ],
   terms: DEFAULTS.terms,
   feesNote: DEFAULTS.feesNote,
   supportNote: DEFAULTS.supportNote,
@@ -40,9 +56,18 @@ const emptyForm = () => ({
   status: "draft",
 });
 
+const cleanItem = (it) => ({
+  title: it.title || "",
+  description: it.description || "",
+  price: it.price == null ? "" : String(it.price),
+});
+const asArray = (v) =>
+  Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {});
+
 export default function QuoteEdit() {
   const { id } = useParams(); // undefined on /quotes/new
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(emptyForm());
   const [savedId, setSavedId] = useState(id || null);
@@ -62,13 +87,18 @@ export default function QuoteEdit() {
     return onValue(ref(db, "quotes/" + id), (s) => {
       if (!s.exists()) return;
       const q = s.val();
-      const items = (Array.isArray(q.items) ? q.items : Object.values(q.items || {}))
-        .filter(Boolean)
-        .map((it) => ({
-          title: it.title || "",
-          description: it.description || "",
-          price: it.price == null ? "" : String(it.price),
+      const items = asArray(q.items).map(cleanItem);
+      const loadedPhases = asArray(q.phases)
+        .filter((ph) => ph && ph.id)
+        .map((ph) => ({
+          id: ph.id,
+          name: ph.name || "",
+          summary: ph.summary || "",
+          items: asArray(ph.items).map(cleanItem).length
+            ? asArray(ph.items).map(cleanItem)
+            : [blankItem()],
         }));
+      const phased = loadedPhases.length > 0;
       setForm({
         subtitle: q.subtitle || "",
         clientId: q.clientId || "",
@@ -80,7 +110,14 @@ export default function QuoteEdit() {
           ...(q.preparedFor || {}),
         },
         summary: q.summary || "",
+        phased,
         items: items.length ? items : [blankItem()],
+        phases: phased
+          ? loadedPhases
+          : [
+              blankPhase("Phase 1 — Website Design & Development"),
+              blankPhase("Phase 2 —"),
+            ],
         terms: q.terms ?? DEFAULTS.terms,
         feesNote: q.feesNote ?? DEFAULTS.feesNote,
         supportNote: q.supportNote ?? DEFAULTS.supportNote,
@@ -92,10 +129,24 @@ export default function QuoteEdit() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const subtotal = form.items.reduce((s, it) => s + Number(it.price || 0), 0);
   const discountPct = Number(form.discountPercent) || 0;
+  const itemsSum = (list) =>
+    list.reduce((s, it) => s + Number(it.price || 0), 0);
+  const discountedOf = (sub) =>
+    discountPct > 0 ? Math.round((sub * (100 - discountPct)) / 100) : sub;
+
+  // Flat-quote figures.
+  const subtotal = itemsSum(form.items);
   const discountAmt = discountPct > 0 ? Math.round((subtotal * discountPct) / 100) : 0;
-  const total = subtotal - discountAmt;
+  const flatTotal = subtotal - discountAmt;
+
+  // Phased figures.
+  const phaseSub = (ph) => itemsSum(ph.items);
+  const phaseTotal = (ph) => discountedOf(phaseSub(ph));
+  const phasedSubtotal = form.phases.reduce((s, ph) => s + phaseSub(ph), 0);
+  const phasedTotal = form.phases.reduce((s, ph) => s + phaseTotal(ph), 0);
+
+  const total = form.phased ? phasedTotal : flatTotal;
 
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const setP = (k) => (e) =>
@@ -114,6 +165,50 @@ export default function QuoteEdit() {
       items: f.items.length > 1 ? f.items.filter((_, idx) => idx !== i) : f.items,
     }));
 
+  // --- Phase editing ---
+  const mapPhase = (f, pi, fn) => ({
+    ...f,
+    phases: f.phases.map((ph, idx) => (idx === pi ? fn(ph) : ph)),
+  });
+  const setPhaseField = (pi, k) => (e) =>
+    setForm((f) => mapPhase(f, pi, (ph) => ({ ...ph, [k]: e.target.value })));
+  const setPhaseItem = (pi, ii, k) => (e) =>
+    setForm((f) =>
+      mapPhase(f, pi, (ph) => ({
+        ...ph,
+        items: ph.items.map((it, idx) =>
+          idx === ii ? { ...it, [k]: e.target.value } : it,
+        ),
+      })),
+    );
+  const addPhaseItem = (pi) =>
+    setForm((f) => mapPhase(f, pi, (ph) => ({ ...ph, items: [...ph.items, blankItem()] })));
+  const removePhaseItem = (pi, ii) =>
+    setForm((f) =>
+      mapPhase(f, pi, (ph) => ({
+        ...ph,
+        items: ph.items.length > 1 ? ph.items.filter((_, idx) => idx !== ii) : ph.items,
+      })),
+    );
+  const addPhase = () =>
+    setForm((f) => ({
+      ...f,
+      phases: [...f.phases, blankPhase(`Phase ${f.phases.length + 1} —`)],
+    }));
+  const removePhase = (pi) =>
+    setForm((f) => ({
+      ...f,
+      phases: f.phases.length > 1 ? f.phases.filter((_, idx) => idx !== pi) : f.phases,
+    }));
+  const movePhase = (pi, dir) =>
+    setForm((f) => {
+      const j = pi + dir;
+      if (j < 0 || j >= f.phases.length) return f;
+      const phases = f.phases.slice();
+      [phases[pi], phases[j]] = [phases[j], phases[pi]];
+      return { ...f, phases };
+    });
+
   const pickClient = (cid) => {
     const c = clients.find((x) => x.id === cid);
     setForm((f) => ({
@@ -130,6 +225,18 @@ export default function QuoteEdit() {
     }));
   };
 
+  // Pre-select the client when arriving from a client page (/quotes/new?client=…).
+  const clientParam = searchParams.get("client");
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (id || prefilled || !clientParam || clients.length === 0) return;
+    if (clients.some((c) => c.id === clientParam)) {
+      pickClient(clientParam);
+      setPrefilled(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, clientParam, clients, prefilled]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setBusy(true);
@@ -143,13 +250,6 @@ export default function QuoteEdit() {
         email: (form.preparedFor.email || "").trim(),
       },
       summary: form.summary.trim(),
-      items: form.items
-        .filter((it) => it.title.trim() || it.price)
-        .map((it) => ({
-          title: it.title.trim(),
-          description: it.description.trim(),
-          price: Number(it.price || 0),
-        })),
       terms: form.terms.trim(),
       feesNote: form.feesNote.trim(),
       supportNote: form.supportNote.trim(),
@@ -158,6 +258,33 @@ export default function QuoteEdit() {
       status: form.status,
       updatedAt: Date.now(),
     };
+
+    const cleanItems = (list) =>
+      list
+        .filter((it) => it.title.trim() || it.price)
+        .map((it) => ({
+          title: it.title.trim(),
+          description: it.description.trim(),
+          price: Number(it.price || 0),
+        }));
+
+    if (form.phased) {
+      // Phased quote: store phase definitions (keeping stable ids). Payment
+      // progress lives under quotes/{id}/phasePay and is written only by the
+      // Stripe webhook, so saving here never disturbs it. Clear the flat list.
+      data.phases = form.phases
+        .map((ph) => ({
+          id: ph.id || newPhaseId(),
+          name: ph.name.trim(),
+          summary: ph.summary.trim(),
+          items: cleanItems(ph.items),
+        }))
+        .filter((ph) => ph.name || ph.items.length);
+      data.items = [];
+    } else {
+      data.items = cleanItems(form.items);
+      data.phases = []; // clear any phases if switched back to a flat quote
+    }
 
     const target = savedId || id;
     if (!target) {
@@ -337,53 +464,194 @@ export default function QuoteEdit() {
 
         <section className="panel">
           <div className="panel-head">
-            <h2>Line items</h2>
-            <button type="button" className="btn btn-outline btn-sm" onClick={addItem}>
-              + Add item
-            </button>
+            <h2>Scope &amp; pricing</h2>
+            {!form.phased && (
+              <button type="button" className="btn btn-outline btn-sm" onClick={addItem}>
+                + Add item
+              </button>
+            )}
           </div>
-          <div className="qitems">
-            {form.items.map((it, i) => (
-              <div className="qitem" key={i}>
-                <div className="qitem-fields">
-                  <div className="qitem-row">
-                    <input
-                      className="qitem-title"
-                      value={it.title}
-                      onChange={setItem(i, "title")}
-                      placeholder="Component (e.g. Website Design & Development)"
-                    />
-                    <div className="qitem-price">
-                      <span>$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={it.price}
-                        onChange={setItem(i, "price")}
-                        placeholder="0"
-                      />
+
+          <label className="phase-toggle">
+            <input
+              type="checkbox"
+              checked={form.phased}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, phased: e.target.checked }))
+              }
+            />
+            <span>
+              <strong>Break this quote into phases</strong>
+              <em>
+                Each phase is priced separately and the client can accept &amp; pay
+                one phase at a time (e.g. build the site now, add booking later).
+              </em>
+            </span>
+          </label>
+
+          {form.phased ? (
+            <div className="phases">
+              {form.phases.map((ph, pi) => (
+                <div className="phase-card" key={ph.id}>
+                  <div className="phase-head">
+                    <span className="phase-index">Phase {pi + 1}</span>
+                    <div className="phase-move">
+                      <button
+                        type="button"
+                        onClick={() => movePhase(pi, -1)}
+                        disabled={pi === 0}
+                        aria-label="Move phase up"
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => movePhase(pi, 1)}
+                        disabled={pi === form.phases.length - 1}
+                        aria-label="Move phase down"
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        className="phase-remove"
+                        onClick={() => removePhase(pi)}
+                        disabled={form.phases.length <= 1}
+                        aria-label="Remove phase"
+                        title="Remove phase"
+                      >
+                        ×
+                      </button>
                     </div>
                   </div>
-                  <input
-                    className="qitem-desc"
-                    value={it.description}
-                    onChange={setItem(i, "description")}
-                    placeholder="Short description of what's included"
-                  />
+                  <label className="field">
+                    <span>Phase name</span>
+                    <input
+                      value={ph.name}
+                      onChange={setPhaseField(pi, "name")}
+                      placeholder="Phase 1 — Website Design & Development"
+                    />
+                  </label>
+                  <label className="field" style={{ marginTop: 12 }}>
+                    <span>Phase summary (optional)</span>
+                    <input
+                      value={ph.summary}
+                      onChange={setPhaseField(pi, "summary")}
+                      placeholder="What this phase delivers"
+                    />
+                  </label>
+
+                  <div className="qitems" style={{ marginTop: 14 }}>
+                    {ph.items.map((it, ii) => (
+                      <div className="qitem" key={ii}>
+                        <div className="qitem-fields">
+                          <div className="qitem-row">
+                            <input
+                              className="qitem-title"
+                              value={it.title}
+                              onChange={setPhaseItem(pi, ii, "title")}
+                              placeholder="Component (e.g. Custom homepage design)"
+                            />
+                            <div className="qitem-price">
+                              <span>$</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={it.price}
+                                onChange={setPhaseItem(pi, ii, "price")}
+                                placeholder="0"
+                              />
+                            </div>
+                          </div>
+                          <input
+                            className="qitem-desc"
+                            value={it.description}
+                            onChange={setPhaseItem(pi, ii, "description")}
+                            placeholder="Short description of what's included"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="qitem-remove"
+                          onClick={() => removePhaseItem(pi, ii)}
+                          aria-label="Remove item"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="phase-foot">
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      onClick={() => addPhaseItem(pi)}
+                    >
+                      + Add item
+                    </button>
+                    <div className="phase-subtotal">
+                      Phase total <strong>{money(phaseTotal(ph))}</strong>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  className="qitem-remove"
-                  onClick={() => removeItem(i)}
-                  aria-label="Remove item"
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+              <button
+                type="button"
+                className="btn btn-outline btn-sm phase-add"
+                onClick={addPhase}
+              >
+                + Add phase
+              </button>
+            </div>
+          ) : (
+            <div className="qitems">
+              {form.items.map((it, i) => (
+                <div className="qitem" key={i}>
+                  <div className="qitem-fields">
+                    <div className="qitem-row">
+                      <input
+                        className="qitem-title"
+                        value={it.title}
+                        onChange={setItem(i, "title")}
+                        placeholder="Component (e.g. Website Design & Development)"
+                      />
+                      <div className="qitem-price">
+                        <span>$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={it.price}
+                          onChange={setItem(i, "price")}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <input
+                      className="qitem-desc"
+                      value={it.description}
+                      onChange={setItem(i, "description")}
+                      placeholder="Short description of what's included"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="qitem-remove"
+                    onClick={() => removeItem(i)}
+                    aria-label="Remove item"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div
             style={{
               display: "flex",
@@ -415,7 +683,39 @@ export default function QuoteEdit() {
             </label>
           </div>
 
-          {discountPct > 0 ? (
+          {form.phased ? (
+            <>
+              {form.phases.map((ph, pi) => (
+                <div
+                  key={ph.id}
+                  className="qtotal-row"
+                  style={{ borderBottom: "none", paddingBottom: 2, paddingTop: 2 }}
+                >
+                  <span className="muted">
+                    {ph.name?.trim() || `Phase ${pi + 1}`}
+                  </span>
+                  <span>{money(phaseTotal(ph))}</span>
+                </div>
+              ))}
+              {discountPct > 0 && (
+                <div className="qtotal-row" style={{ borderTop: "none", paddingTop: 2, paddingBottom: 2 }}>
+                  <span className="muted">
+                    Discount ({discountPct}%){" "}
+                    <em style={{ fontStyle: "normal", opacity: 0.7 }}>
+                      applied to each phase
+                    </em>
+                  </span>
+                  <span style={{ color: "#2e7d5b" }}>
+                    −{money(phasedSubtotal - phasedTotal)}
+                  </span>
+                </div>
+              )}
+              <div className="qtotal-row" style={{ borderTop: "none" }}>
+                <span>All phases total</span>
+                <span className="quote-total">{money(total)}</span>
+              </div>
+            </>
+          ) : discountPct > 0 ? (
             <>
               <div className="qtotal-row" style={{ borderBottom: "none", paddingBottom: 2 }}>
                 <span className="muted">Subtotal</span>

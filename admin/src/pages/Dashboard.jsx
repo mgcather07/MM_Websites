@@ -4,6 +4,9 @@ import { ref, onValue } from "firebase/database";
 import { db } from "../firebase";
 import { money, dateShort, toList } from "../lib/format";
 import { useAuth } from "../auth/AuthContext";
+import CopyButton from "../components/CopyButton";
+
+const FREE_QUOTE_LINK = "https://mmwebsites.com/#quote";
 
 const DAY = 86400000;
 const ymd = (d) => new Date(d).toISOString().slice(0, 10);
@@ -146,6 +149,12 @@ export default function Dashboard() {
         <Link to="/ndas/new" className="btn btn-outline btn-sm">+ New NDA</Link>
         <Link to="/projects" className="btn btn-outline btn-sm">+ New project</Link>
         <Link to="/clients" className="btn btn-outline btn-sm">+ Add client</Link>
+        <CopyButton
+          text={FREE_QUOTE_LINK}
+          label="Copy free-quote link"
+          copiedLabel="Copied free-quote link!"
+          className="btn btn-outline btn-sm"
+        />
       </div>
 
       {newLeads > 0 && (

@@ -99,6 +99,16 @@ function itemsOf(q) {
 function totalOf(q) {
   return itemsOf(q).reduce((s, it) => s + Number((it && it.price) || 0), 0);
 }
+function phasesOf(q) {
+  const ph = (q && q.phases) || [];
+  const list = Array.isArray(ph) ? ph.filter(Boolean) : Object.values(ph);
+  return list.filter((p) => p && p.id);
+}
+function phaseSubtotal(ph) {
+  const items = (ph && ph.items) || [];
+  const list = Array.isArray(items) ? items.filter(Boolean) : Object.values(items);
+  return list.reduce((s, it) => s + Number((it && it.price) || 0), 0);
+}
 
 // ---------------------------------------------------------------------------
 // Templates
@@ -107,22 +117,54 @@ function totalOf(q) {
 function quoteEmail(quote, link) {
   const pf = quote.preparedFor || {};
   const first = String(pf.name || "").trim().split(/\s+/)[0] || "there";
-  const subtotal = totalOf(quote);
   const pct = Number(quote.discountPercent || 0);
-  const discountAmt = pct > 0 ? Math.round((subtotal * pct) / 100) : 0;
-  const total = subtotal - discountAmt;
-  const lineRows = itemsOf(quote).map((it) => [it.title || "Item", money(it.price)]);
-  const summaryRows =
-    pct > 0
-      ? [
-          ["Subtotal", money(subtotal)],
-          [
-            `Discount${quote.discountReason ? " — " + quote.discountReason : ""} (${pct}%)`,
-            "−" + money(discountAmt),
-          ],
-          ["Project total", money(total)],
-        ]
-      : [["Project total", money(total)]];
+  const phases = phasesOf(quote);
+
+  let bodyRows;
+  let closing;
+  if (phases.length) {
+    // Phased quote: one row per phase (discounted), then a grand total. The
+    // client can start with Phase 1 and pay the later phases when they're ready.
+    const phaseRows = phases.map((ph, i) => {
+      const sub = phaseSubtotal(ph);
+      const t = pct > 0 ? Math.round(sub * (1 - pct / 100)) : sub;
+      return [ph.name || `Phase ${i + 1}`, money(t)];
+    });
+    const grand = phases.reduce((sum, ph) => {
+      const sub = phaseSubtotal(ph);
+      return sum + (pct > 0 ? Math.round(sub * (1 - pct / 100)) : sub);
+    }, 0);
+    bodyRows = [
+      ["Quote", quote.quoteNumber],
+      ...phaseRows,
+      ...(pct > 0
+        ? [[`Discount${quote.discountReason ? " — " + quote.discountReason : ""} (${pct}%)`, "applied"]]
+        : []),
+      ["All phases", money(grand)],
+    ];
+    closing =
+      "This project is set up in phases, so you can get moving on Phase 1 now and take the rest as you're ready. Open your quote to review each phase and pay when the time is right — a 40% deposit starts any phase, or you can pay a phase in full.";
+  } else {
+    const subtotal = totalOf(quote);
+    const discountAmt = pct > 0 ? Math.round((subtotal * pct) / 100) : 0;
+    const total = subtotal - discountAmt;
+    const lineRows = itemsOf(quote).map((it) => [it.title || "Item", money(it.price)]);
+    const summaryRows =
+      pct > 0
+        ? [
+            ["Subtotal", money(subtotal)],
+            [
+              `Discount${quote.discountReason ? " — " + quote.discountReason : ""} (${pct}%)`,
+              "−" + money(discountAmt),
+            ],
+            ["Project total", money(total)],
+          ]
+        : [["Project total", money(total)]];
+    bodyRows = [["Quote", quote.quoteNumber], ...lineRows, ...summaryRows];
+    closing =
+      "You can review the full details and accept online — a 40% deposit gets us started, or you're welcome to pay in full.";
+  }
+
   const inner =
     h(`Your project quote is ready, ${first}`) +
     p(
@@ -132,11 +174,9 @@ function quoteEmail(quote, link) {
         quote.subtitle ? ` for <strong>${esc(quote.subtitle)}</strong>` : ""
       }.`,
     ) +
-    rows([["Quote", quote.quoteNumber], ...lineRows, ...summaryRows]) +
+    rows(bodyRows) +
     p(btn(link, "View & accept your quote")) +
-    p(
-      "You can review the full details and accept online — a 40% deposit gets us started, or you're welcome to pay in full.",
-    ) +
+    p(closing) +
     p(
       "Questions? Just reply to this email or call (205) 914-1019.<br/>Michael &amp; Mandy · M&amp;M Websites",
     );
@@ -200,21 +240,26 @@ function leadAdminEmail(lead) {
   };
 }
 
-function paymentClientEmail({ name, amount, paidInFull, remaining, quoteNumber }) {
+function paymentClientEmail({ name, amount, paidInFull, remaining, quoteNumber, phaseName }) {
   const first = String(name || "").trim().split(/\s+/)[0] || "there";
+  // For a phased quote, "paid in full" refers to the phase, not the whole project.
+  const whatPaid = phaseName ? esc(phaseName) : "your project";
   const inner =
     h(`Payment received — thank you, ${first}!`) +
     p(
       paidInFull
         ? `We've received your payment of <strong>${money(
             amount,
-          )}</strong>, and your project is now paid in full. 🎉`
+          )}</strong> — <strong>${whatPaid}</strong> is now paid in full. 🎉`
         : `We've received your deposit of <strong>${money(
             amount,
-          )}</strong> — thank you! That's our green light to get started.`,
+          )}</strong>${
+            phaseName ? ` for <strong>${esc(phaseName)}</strong>` : ""
+          } — thank you! That's our green light to get started.`,
     ) +
     rows([
       ["Quote", quoteNumber],
+      ...(phaseName ? [["Phase", phaseName]] : []),
       ["Amount paid", money(amount)],
       [
         paidInFull ? "Status" : "Balance remaining",
@@ -229,18 +274,19 @@ function paymentClientEmail({ name, amount, paidInFull, remaining, quoteNumber }
     p("Michael &amp; Mandy · M&amp;M Websites");
   return {
     subject: paidInFull
-      ? "Payment received — paid in full · M&M Websites"
+      ? `Payment received — ${phaseName ? esc(phaseName) + " " : ""}paid in full · M&M Websites`
       : "Deposit received — thank you! · M&M Websites",
     html: shell("Payment received", inner),
   };
 }
 
-function paymentAdminEmail({ name, amount, paidInFull, remaining, quoteNumber, quoteId }) {
+function paymentAdminEmail({ name, amount, paidInFull, remaining, quoteNumber, quoteId, phaseName }) {
   const inner =
     h(paidInFull ? "Paid in full 🎉" : "Deposit received 💰") +
     rows([
       ["Client", name],
       ["Quote", quoteNumber],
+      ...(phaseName ? [["Phase", phaseName]] : []),
       ["Amount", money(amount)],
       ["Status", paidInFull ? "Paid in full" : `${money(remaining)} remaining`],
     ]) +
@@ -248,7 +294,7 @@ function paymentAdminEmail({ name, amount, paidInFull, remaining, quoteNumber, q
   return {
     subject: `${paidInFull ? "Paid in full" : "Payment received"} — ${
       name || "client"
-    } · ${money(amount)}`,
+    }${phaseName ? ` · ${phaseName}` : ""} · ${money(amount)}`,
     html: shell("Payment received", inner),
   };
 }

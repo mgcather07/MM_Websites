@@ -3,14 +3,44 @@ import { Link, useParams } from "react-router-dom";
 import { ref, onValue, push, set, update } from "firebase/database";
 import { db } from "../firebase";
 import { money, dateShort, toList } from "../lib/format";
+import CopyButton from "../components/CopyButton";
+
+const QUOTE_LINK_BASE = "https://mmwebsites.com/quote?id=";
+
+// A quote's total, handling both flat and phased quotes plus a % discount.
+function quoteTotal(q) {
+  const pct = Number(q.discountPercent || 0);
+  const disc = (n) => (pct > 0 ? Math.round((n * (100 - pct)) / 100) : n);
+  const sumItems = (items) =>
+    (Array.isArray(items) ? items.filter(Boolean) : Object.values(items || {})).reduce(
+      (a, it) => a + Number((it && it.price) || 0),
+      0,
+    );
+  const phases = (Array.isArray(q.phases) ? q.phases.filter(Boolean) : Object.values(q.phases || {})).filter(
+    (p) => p && p.id,
+  );
+  if (phases.length) return phases.reduce((s, ph) => s + disc(sumItems(ph.items)), 0);
+  return disc(sumItems(q.items));
+}
+
+// Turn a quote's status into a plain-English "have they approved it?" answer.
+function quoteStatusMeta(q) {
+  const s = q.status || "draft";
+  if (s === "paid") return { label: "Approved · paid in full", cls: "pill-paid" };
+  if (s === "accepted") return { label: "Approved · deposit paid", cls: "pill-paid" };
+  if (s === "sent") return { label: "Awaiting approval", cls: "pill-building" };
+  return { label: "Not sent yet", cls: "pill-unpaid" };
+}
 
 export default function ClientDetail() {
   const { id } = useParams();
   const [client, setClient] = useState(undefined); // undefined=loading, null=missing
   const [projects, setProjects] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [quotes, setQuotes] = useState([]);
   const [showProject, setShowProject] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     const subs = [
@@ -22,6 +52,9 @@ export default function ClientDetail() {
       ),
       onValue(ref(db, "payments"), (s) =>
         setPayments(toList(s.val()).filter((p) => p.clientId === id)),
+      ),
+      onValue(ref(db, "quotes"), (s) =>
+        setQuotes(toList(s.val()).filter((qq) => qq.clientId === id)),
       ),
     ];
     return () => subs.forEach((u) => u());
@@ -44,6 +77,10 @@ export default function ClientDetail() {
       </div>
     );
 
+  const sortedQuotes = [...quotes].sort(
+    (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+  );
+
   return (
     <div className="page">
       <Link className="back" to="/clients">
@@ -60,7 +97,100 @@ export default function ClientDetail() {
               .join(" · ") || "No contact details yet"}
           </p>
         </div>
+        {!editing && (
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setEditing(true)}
+          >
+            Edit client
+          </button>
+        )}
       </header>
+
+      {editing && (
+        <ClientForm
+          id={id}
+          client={client}
+          onDone={() => setEditing(false)}
+        />
+      )}
+
+      {client.notes && !editing && (
+        <p className="client-notes">{client.notes}</p>
+      )}
+
+      {/* Quotes */}
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Quotes</h2>
+          <Link
+            className="btn btn-outline btn-sm"
+            to={`/quotes/new?client=${id}`}
+          >
+            + New quote
+          </Link>
+        </div>
+        {sortedQuotes.length === 0 ? (
+          <p className="muted">
+            No quotes for this client yet. Create one to send them a price.
+          </p>
+        ) : (
+          <div className="table-scroll">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Quote</th>
+                  <th>Total</th>
+                  <th>Approval</th>
+                  <th className="right">Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedQuotes.map((qq) => {
+                  const meta = quoteStatusMeta(qq);
+                  return (
+                    <tr key={qq.id}>
+                      <td>
+                        <Link className="link strong" to={`/quotes/${qq.id}`}>
+                          {qq.quoteNumber || "Quote"}
+                        </Link>
+                        {qq.subtitle && (
+                          <div className="muted sub-line">{qq.subtitle}</div>
+                        )}
+                        <div className="muted sub-line">
+                          {qq.emailedAt
+                            ? `Emailed ${dateShort(qq.emailedAt)}`
+                            : "Not emailed"}
+                        </div>
+                      </td>
+                      <td className="num strong">{money(quoteTotal(qq))}</td>
+                      <td>
+                        <span className={`pill ${meta.cls}`}>{meta.label}</span>
+                      </td>
+                      <td className="right">
+                        <div className="row-actions">
+                          <a
+                            className="link"
+                            href={QUOTE_LINK_BASE + qq.id}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open
+                          </a>
+                          <CopyButton
+                            text={QUOTE_LINK_BASE + qq.id}
+                            className="btn btn-outline btn-sm"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* Projects */}
       <section className="panel">
@@ -167,6 +297,69 @@ export default function ClientDetail() {
         )}
       </section>
     </div>
+  );
+}
+
+function ClientForm({ id, client, onDone }) {
+  const [f, setF] = useState({
+    businessName: client.businessName || "",
+    contactName: client.contactName || "",
+    email: client.email || "",
+    phone: client.phone || "",
+    notes: client.notes || "",
+  });
+  const [busy, setBusy] = useState(false);
+  const on = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
+
+  const save = async (e) => {
+    e.preventDefault();
+    if (!f.businessName.trim()) return;
+    setBusy(true);
+    await update(ref(db, "clients/" + id), {
+      businessName: f.businessName.trim(),
+      contactName: f.contactName.trim(),
+      email: f.email.trim(),
+      phone: f.phone.trim(),
+      notes: f.notes.trim(),
+      updatedAt: Date.now(),
+    });
+    setBusy(false);
+    onDone();
+  };
+
+  return (
+    <form className="panel add-form" onSubmit={save}>
+      <div className="grid-2">
+        <label className="field">
+          <span>Business name *</span>
+          <input value={f.businessName} onChange={on("businessName")} required autoFocus />
+        </label>
+        <label className="field">
+          <span>Contact name</span>
+          <input value={f.contactName} onChange={on("contactName")} />
+        </label>
+        <label className="field">
+          <span>Email</span>
+          <input type="email" value={f.email} onChange={on("email")} />
+        </label>
+        <label className="field">
+          <span>Phone</span>
+          <input value={f.phone} onChange={on("phone")} />
+        </label>
+      </div>
+      <label className="field" style={{ marginTop: 14 }}>
+        <span>Notes</span>
+        <textarea rows={2} value={f.notes} onChange={on("notes")} placeholder="Anything worth remembering about this client" />
+      </label>
+      <div className="save-bar" style={{ position: "static", padding: "16px 0 0" }}>
+        <button type="button" className="btn btn-outline" onClick={onDone}>
+          Cancel
+        </button>
+        <button className="btn btn-maroon" disabled={busy}>
+          {busy ? "Saving…" : "Save changes"}
+        </button>
+      </div>
+    </form>
   );
 }
 

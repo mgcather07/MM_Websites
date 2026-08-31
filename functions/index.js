@@ -33,6 +33,37 @@ function discountedTotalOf(q) {
   return Math.round(subtotal * (1 - pct / 100));
 }
 
+// --- Phased quotes -------------------------------------------------------
+// A quote may be split into independently-payable phases. Each phase carries
+// its own line items and a stable `id`. Per-phase payment progress is stored
+// separately under quotes/{id}/phasePay/{phaseId} so re-saving the quote
+// definition never overwrites a client's payment state.
+function phasesOf(q) {
+  const ph = (q && q.phases) || [];
+  const list = Array.isArray(ph) ? ph.filter(Boolean) : Object.values(ph);
+  return list.filter((p) => p && p.id);
+}
+function isPhased(q) {
+  return phasesOf(q).length > 0;
+}
+function phaseSubtotal(ph) {
+  const items = (ph && ph.items) || [];
+  const list = Array.isArray(items) ? items.filter(Boolean) : Object.values(items);
+  return list.reduce((s, it) => s + Number((it && it.price) || 0), 0);
+}
+/** A single phase's owed amount: its subtotal minus the quote's percentage discount. */
+function discountedPhaseTotal(q, ph) {
+  const subtotal = phaseSubtotal(ph);
+  const pct = Number((q && q.discountPercent) || 0);
+  if (!(pct > 0)) return subtotal;
+  return Math.round(subtotal * (1 - pct / 100));
+}
+function phaseAmountPaid(q, phaseId) {
+  return Number(
+    (q && q.phasePay && q.phasePay[phaseId] && q.phasePay[phaseId].amountPaid) || 0,
+  );
+}
+
 /**
  * Create a Stripe Checkout Session for a quote. The browser sends only the
  * quoteId + mode; the server reads the real amount from the database, so the
@@ -47,7 +78,7 @@ exports.createQuoteCheckout = onRequest(
         res.status(405).json({ error: "Method not allowed" });
         return;
       }
-      const { quoteId, mode } = req.body || {};
+      const { quoteId, mode, phaseId } = req.body || {};
       if (!quoteId) {
         res.status(400).json({ error: "Missing quoteId" });
         return;
@@ -59,8 +90,28 @@ exports.createQuoteCheckout = onRequest(
         return;
       }
       const q = snap.val();
-      const total = discountedTotalOf(q);
-      const amountPaid = Number(q.amountPaid || 0);
+
+      // Resolve the amount owed. For a phased quote the client pays one phase
+      // at a time; otherwise it's the whole quote (original behavior).
+      let total;
+      let amountPaid;
+      let productName;
+      let metadata;
+      let phaseLabel = "Phase";
+
+      if (phaseId) {
+        const phase = phasesOf(q).find((p) => p.id === phaseId);
+        if (!phase) {
+          res.status(404).json({ error: "Phase not found" });
+          return;
+        }
+        total = discountedPhaseTotal(q, phase);
+        amountPaid = phaseAmountPaid(q, phaseId);
+        phaseLabel = phase.name || "Phase";
+      } else {
+        total = discountedTotalOf(q);
+        amountPaid = Number(q.amountPaid || 0);
+      }
 
       let amount;
       let label;
@@ -72,8 +123,20 @@ exports.createQuoteCheckout = onRequest(
         label = amountPaid > 0 ? "Remaining Balance" : "Full Payment";
       }
       if (!(amount > 0)) {
-        res.status(400).json({ error: "Nothing left to pay on this quote." });
+        res.status(400).json({
+          error: phaseId
+            ? "Nothing left to pay on this phase."
+            : "Nothing left to pay on this quote.",
+        });
         return;
+      }
+
+      if (phaseId) {
+        productName = `M&M Websites — ${q.quoteNumber || "Quote"} · ${phaseLabel} · ${label}`;
+        metadata = { quoteId, phaseId, kind: mode === "deposit" ? "deposit" : "balance" };
+      } else {
+        productName = `M&M Websites — ${q.quoteNumber || "Quote"} · ${label}`;
+        metadata = { quoteId, kind: mode === "deposit" ? "deposit" : "balance" };
       }
 
       const stripe = Stripe(STRIPE_SECRET_KEY.value());
@@ -86,16 +149,13 @@ exports.createQuoteCheckout = onRequest(
               currency: "usd",
               unit_amount: amount * 100,
               product_data: {
-                name: `M&M Websites — ${q.quoteNumber || "Quote"} · ${label}`,
+                name: productName,
                 description: q.subtitle || undefined,
               },
             },
           },
         ],
-        metadata: {
-          quoteId,
-          kind: mode === "deposit" ? "deposit" : "balance",
-        },
+        metadata,
         success_url: `${SITE}/quote?id=${quoteId}&paid=1`,
         cancel_url: `${SITE}/quote?id=${quoteId}`,
       });
@@ -132,6 +192,7 @@ exports.stripeWebhook = onRequest(
     if (event.type === "checkout.session.completed") {
       const s = event.data.object;
       const quoteId = s.metadata && s.metadata.quoteId;
+      const phaseId = s.metadata && s.metadata.phaseId;
       const kind = (s.metadata && s.metadata.kind) || "payment";
       const amount = (s.amount_total || 0) / 100;
       if (quoteId && amount > 0) {
@@ -140,16 +201,81 @@ exports.stripeWebhook = onRequest(
           const snap = await ref.get();
           if (snap.exists()) {
             const q = snap.val();
-            const total = discountedTotalOf(q);
-            const amountPaid = Number(q.amountPaid || 0) + amount;
-            const paidInFull = amountPaid >= total;
-            await ref.update({
-              amountPaid,
-              status: paidInFull ? "paid" : "accepted",
-              lastPaidAt: Date.now(),
-            });
+
+            // `info` describes the payment for the receipt emails; `updates`
+            // is applied to the quote. The two payment models — a phased
+            // quote (pay one phase) and a flat quote (pay the whole thing) —
+            // fill these in differently.
+            let info;
+            const updates = { lastPaidAt: Date.now() };
+
+            if (phaseId) {
+              const phase = phasesOf(q).find((p) => p.id === phaseId);
+              if (!phase) {
+                logger.warn("Webhook: phase not found on quote", { quoteId, phaseId });
+              }
+              const phaseTotal = discountedPhaseTotal(q, phase || {});
+              const phasePaid = phaseAmountPaid(q, phaseId) + amount;
+              const phasePaidInFull = phasePaid >= phaseTotal;
+
+              // Roll the quote's overall status/total up across all phases,
+              // treating this phase's new paid amount as already applied.
+              const phases = phasesOf(q);
+              const grandPaid = phases.reduce((sum, p) => {
+                const paid =
+                  p.id === phaseId ? phasePaid : phaseAmountPaid(q, p.id);
+                return sum + paid;
+              }, 0);
+              const allPaid = phases.every((p) => {
+                const t = discountedPhaseTotal(q, p);
+                const paid =
+                  p.id === phaseId ? phasePaid : phaseAmountPaid(q, p.id);
+                return paid >= t;
+              });
+
+              updates[`phasePay/${phaseId}/amountPaid`] = phasePaid;
+              updates[`phasePay/${phaseId}/status`] = phasePaidInFull
+                ? "paid"
+                : "accepted";
+              updates[`phasePay/${phaseId}/lastPaidAt`] = Date.now();
+              updates.amountPaid = grandPaid;
+              updates.status = allPaid ? "paid" : "accepted";
+
+              info = {
+                name:
+                  (q.preparedFor && q.preparedFor.name) ||
+                  (s.customer_details && s.customer_details.name) ||
+                  "",
+                amount,
+                paidInFull: phasePaidInFull,
+                remaining: Math.max(0, phaseTotal - phasePaid),
+                quoteNumber: q.quoteNumber || "",
+                quoteId,
+                phaseName: (phase && phase.name) || "",
+              };
+            } else {
+              const total = discountedTotalOf(q);
+              const amountPaid = Number(q.amountPaid || 0) + amount;
+              const paidInFull = amountPaid >= total;
+              updates.amountPaid = amountPaid;
+              updates.status = paidInFull ? "paid" : "accepted";
+              info = {
+                name:
+                  (q.preparedFor && q.preparedFor.name) ||
+                  (s.customer_details && s.customer_details.name) ||
+                  "",
+                amount,
+                paidInFull,
+                remaining: Math.max(0, total - amountPaid),
+                quoteNumber: q.quoteNumber || "",
+                quoteId,
+              };
+            }
+
+            await ref.update(updates);
             await db.ref("payments").push({
               quoteId,
+              ...(phaseId ? { phaseId } : {}),
               clientId: q.clientId || "",
               amount,
               status: "paid",
@@ -166,18 +292,6 @@ exports.stripeWebhook = onRequest(
               q.clientEmail ||
               (q.preparedFor && q.preparedFor.email) ||
               "";
-            const name =
-              (q.preparedFor && q.preparedFor.name) ||
-              (s.customer_details && s.customer_details.name) ||
-              "";
-            const info = {
-              name,
-              amount,
-              paidInFull,
-              remaining: Math.max(0, total - amountPaid),
-              quoteNumber: q.quoteNumber || "",
-              quoteId,
-            };
             const key = RESEND_API_KEY.value();
             const c = mail.paymentClientEmail(info);
             const a = mail.paymentAdminEmail(info);

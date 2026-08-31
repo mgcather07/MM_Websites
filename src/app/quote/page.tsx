@@ -7,6 +7,13 @@ import { site } from "@/content/site";
 import styles from "./Quote.module.css";
 
 type QuoteItem = { title?: string; description?: string; price?: number };
+type Phase = {
+  id?: string;
+  name?: string;
+  summary?: string;
+  items?: QuoteItem[] | Record<string, QuoteItem>;
+};
+type PhasePay = { amountPaid?: number; status?: string };
 
 type Quote = {
   quoteNumber?: string;
@@ -15,6 +22,8 @@ type Quote = {
   preparedFor?: { name?: string; org?: string; location?: string };
   summary?: string;
   items?: QuoteItem[] | Record<string, QuoteItem>;
+  phases?: Phase[] | Record<string, Phase>;
+  phasePay?: Record<string, PhasePay>;
   terms?: string;
   feesNote?: string;
   supportNote?: string;
@@ -30,9 +39,15 @@ const money = (n?: number) =>
     maximumFractionDigits: Number(n || 0) % 1 ? 2 : 0,
   });
 
-function itemList(items: Quote["items"]): QuoteItem[] {
+function itemList(items: QuoteItem[] | Record<string, QuoteItem> | undefined): QuoteItem[] {
   if (!items) return [];
   return Array.isArray(items) ? items.filter(Boolean) : Object.values(items);
+}
+
+function phaseList(phases: Quote["phases"]): Phase[] {
+  if (!phases) return [];
+  const arr = Array.isArray(phases) ? phases.filter(Boolean) : Object.values(phases);
+  return arr.filter((p) => p && p.id);
 }
 
 export default function QuotePage() {
@@ -58,14 +73,15 @@ export default function QuotePage() {
     );
   }, []);
 
-  async function pay(mode: "deposit" | "full") {
-    setPaying(mode);
+  async function pay(mode: "deposit" | "full", phaseId?: string) {
+    const key = phaseId ? `${phaseId}:${mode}` : mode;
+    setPaying(key);
     setPayError("");
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quoteId: id, mode }),
+        body: JSON.stringify({ quoteId: id, mode, phaseId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) throw new Error(data.error || "Checkout failed");
@@ -93,16 +109,49 @@ export default function QuotePage() {
     );
   }
 
+  const discountPct = Number(quote.discountPercent || 0);
+  const applyDiscount = (n: number) =>
+    discountPct > 0 ? Math.round((n * (100 - discountPct)) / 100) : n;
+
+  const phases = phaseList(quote.phases);
+  const phased = phases.length > 0;
+
+  // ---- Flat-quote figures (used only when not phased) ----
   const items = itemList(quote.items);
   const subtotal = items.reduce((sum, it) => sum + Number(it.price || 0), 0);
-  const discountPct = Number(quote.discountPercent || 0);
-  const discountAmount =
-    discountPct > 0 ? Math.round((subtotal * discountPct) / 100) : 0;
+  const discountAmount = subtotal - applyDiscount(subtotal);
   const total = subtotal - discountAmount;
   const amountPaid = Number(quote.amountPaid || 0);
   const remaining = Math.max(0, total - amountPaid);
   const deposit = Math.round(total * 0.4);
   const isPaid = quote.status === "paid" || remaining <= 0;
+
+  // ---- Phased figures ----
+  const pay0 = quote.phasePay || {};
+  const phaseInfo = phases.map((ph, i) => {
+    const pSub = itemList(ph.items).reduce((s, it) => s + Number(it.price || 0), 0);
+    const pTotal = applyDiscount(pSub);
+    const paid = Number((pay0[ph.id as string] || {}).amountPaid || 0);
+    const paidStatus = (pay0[ph.id as string] || {}).status;
+    const pRemaining = Math.max(0, pTotal - paid);
+    const pPaid = paidStatus === "paid" || (pTotal > 0 && pRemaining <= 0);
+    return {
+      phase: ph,
+      index: i,
+      name: ph.name?.trim() || `Phase ${i + 1}`,
+      items: itemList(ph.items),
+      subtotal: pSub,
+      total: pTotal,
+      paid,
+      remaining: pRemaining,
+      deposit: Math.round(pTotal * 0.4),
+      isPaid: pPaid,
+      hasPayment: paid > 0,
+    };
+  });
+  const grandTotal = phaseInfo.reduce((s, p) => s + p.total, 0);
+  const grandSubtotal = phaseInfo.reduce((s, p) => s + p.subtotal, 0);
+  const allPhasesPaid = phased && phaseInfo.every((p) => p.isPaid);
 
   return (
     <div className={styles.wrap}>
@@ -154,55 +203,113 @@ export default function QuotePage() {
           </div>
         )}
 
-        <div className={styles.itemsHead}>
-          <span>Project Component</span>
-          <span>Price</span>
-        </div>
-
-        <div className={styles.items}>
-          {items.map((it, i) => (
-            <div className={styles.item} key={i}>
-              <div className={styles.itemMain}>
-                <div className={styles.itemTitle}>{it.title}</div>
-                {it.description && (
-                  <div className={styles.itemDesc}>{it.description}</div>
-                )}
-              </div>
-              <div className={styles.itemPrice}>{money(it.price)}</div>
-            </div>
-          ))}
-        </div>
-
-        {discountPct > 0 && (
-          <div className={styles.breakdown}>
-            <div className={styles.breakRow}>
-              <span>Subtotal</span>
-              <span>{money(subtotal)}</span>
-            </div>
-            <div className={`${styles.breakRow} ${styles.breakDiscount}`}>
-              <span>
-                Discount
-                {quote.discountReason ? ` — ${quote.discountReason}` : ""} (
-                {discountPct}%)
-              </span>
-              <span>−{money(discountAmount)}</span>
-            </div>
+        {phased && (
+          <div className={styles.phaseNote}>
+            This project is arranged in phases. You can start with Phase 1 now and
+            take on the later phases whenever you&apos;re ready — each phase is
+            accepted and paid separately.
           </div>
         )}
 
-        <div className={styles.total}>
-          <div>
-            <div className={styles.totalLabel}>Complete Project Total</div>
-            {discountPct > 0 && quote.discountReason && (
-              <div className={styles.terms}>
-                Includes your {discountPct}% discount — {quote.discountReason}.
+        {phased ? (
+          <>
+            {phaseInfo.map((p) => (
+              <div className={styles.phaseBlock} key={p.phase.id}>
+                <div className={styles.phaseBar}>
+                  <div className={styles.phaseBarName}>
+                    {p.name}
+                    {p.isPaid && <span className={styles.phaseTag}>Paid</span>}
+                  </div>
+                  <div className={styles.phaseBarPrice}>{money(p.total)}</div>
+                </div>
+                {p.phase.summary && (
+                  <p className={styles.phaseSummary}>{p.phase.summary}</p>
+                )}
+                <div className={styles.items}>
+                  {p.items.map((it, i) => (
+                    <div className={styles.item} key={i}>
+                      <div className={styles.itemMain}>
+                        <div className={styles.itemTitle}>{it.title}</div>
+                        {it.description && (
+                          <div className={styles.itemDesc}>{it.description}</div>
+                        )}
+                      </div>
+                      <div className={styles.itemPrice}>{money(it.price)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className={styles.total}>
+              <div>
+                <div className={styles.totalLabel}>All Phases Total</div>
+                {discountPct > 0 && (
+                  <div className={styles.terms}>
+                    Includes your {discountPct}% discount
+                    {quote.discountReason ? ` — ${quote.discountReason}` : ""} (you
+                    save {money(grandSubtotal - grandTotal)}).
+                  </div>
+                )}
+                {quote.terms && <div className={styles.terms}>{quote.terms}</div>}
+                {quote.feesNote && <div className={styles.fees}>{quote.feesNote}</div>}
+              </div>
+              <div className={styles.totalValue}>{money(grandTotal)}</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={styles.itemsHead}>
+              <span>Project Component</span>
+              <span>Price</span>
+            </div>
+
+            <div className={styles.items}>
+              {items.map((it, i) => (
+                <div className={styles.item} key={i}>
+                  <div className={styles.itemMain}>
+                    <div className={styles.itemTitle}>{it.title}</div>
+                    {it.description && (
+                      <div className={styles.itemDesc}>{it.description}</div>
+                    )}
+                  </div>
+                  <div className={styles.itemPrice}>{money(it.price)}</div>
+                </div>
+              ))}
+            </div>
+
+            {discountPct > 0 && (
+              <div className={styles.breakdown}>
+                <div className={styles.breakRow}>
+                  <span>Subtotal</span>
+                  <span>{money(subtotal)}</span>
+                </div>
+                <div className={`${styles.breakRow} ${styles.breakDiscount}`}>
+                  <span>
+                    Discount
+                    {quote.discountReason ? ` — ${quote.discountReason}` : ""} (
+                    {discountPct}%)
+                  </span>
+                  <span>−{money(discountAmount)}</span>
+                </div>
               </div>
             )}
-            {quote.terms && <div className={styles.terms}>{quote.terms}</div>}
-            {quote.feesNote && <div className={styles.fees}>{quote.feesNote}</div>}
-          </div>
-          <div className={styles.totalValue}>{money(total)}</div>
-        </div>
+
+            <div className={styles.total}>
+              <div>
+                <div className={styles.totalLabel}>Complete Project Total</div>
+                {discountPct > 0 && quote.discountReason && (
+                  <div className={styles.terms}>
+                    Includes your {discountPct}% discount — {quote.discountReason}.
+                  </div>
+                )}
+                {quote.terms && <div className={styles.terms}>{quote.terms}</div>}
+                {quote.feesNote && <div className={styles.fees}>{quote.feesNote}</div>}
+              </div>
+              <div className={styles.totalValue}>{money(total)}</div>
+            </div>
+          </>
+        )}
 
         <footer className={styles.foot}>
           <div>
@@ -217,7 +324,107 @@ export default function QuotePage() {
         </footer>
       </article>
 
-      {isPaid ? (
+      {/* ---- Payment ---- */}
+      {justPaid && (
+        <div className={`${styles.payCard} ${styles.confirmCard}`}>
+          <div className={styles.confirming}>
+            Confirming your payment… this page updates automatically once it
+            clears.
+          </div>
+        </div>
+      )}
+
+      {phased ? (
+        allPhasesPaid ? (
+          <div className={styles.paidCard}>
+            <div className={styles.paidCheck}>✓</div>
+            <div>
+              <div className={styles.paidTitle}>All phases paid — thank you!</div>
+              <div className={styles.paidSub}>
+                Every phase of your project is paid in full.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.phasePayStack}>
+            {phaseInfo.map((p) => (
+              <div className={styles.phasePayCard} key={p.phase.id}>
+                <div className={styles.phasePayHead}>
+                  <div>
+                    <div className={styles.phasePayName}>{p.name}</div>
+                    <div className={styles.phasePayPrice}>{money(p.total)}</div>
+                  </div>
+                  {p.isPaid ? (
+                    <span className={styles.phasePaidBadge}>✓ Paid</span>
+                  ) : p.hasPayment ? (
+                    <span className={styles.phaseDueBadge}>
+                      {money(p.remaining)} due
+                    </span>
+                  ) : null}
+                </div>
+
+                {p.isPaid ? (
+                  <p className={styles.phasePaySub}>
+                    This phase is paid in full — thank you!
+                  </p>
+                ) : (
+                  <>
+                    <p className={styles.phasePaySub}>
+                      {p.hasPayment ? (
+                        <>
+                          Deposit received: <strong>{money(p.paid)}</strong>.
+                          Balance due: <strong>{money(p.remaining)}</strong>.
+                        </>
+                      ) : (
+                        <>
+                          Pay securely by card. A 40% deposit starts this phase,
+                          or pay it in full.
+                        </>
+                      )}
+                    </p>
+                    <div className={styles.payButtons}>
+                      {p.hasPayment ? (
+                        <button
+                          className={styles.payPrimary}
+                          disabled={!!paying}
+                          onClick={() => pay("full", p.phase.id)}
+                        >
+                          {paying === `${p.phase.id}:full`
+                            ? "Starting…"
+                            : `Pay balance · ${money(p.remaining)}`}
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            className={styles.payPrimary}
+                            disabled={!!paying}
+                            onClick={() => pay("deposit", p.phase.id)}
+                          >
+                            {paying === `${p.phase.id}:deposit`
+                              ? "Starting…"
+                              : `Accept & pay 40% · ${money(p.deposit)}`}
+                          </button>
+                          <button
+                            className={styles.paySecondary}
+                            disabled={!!paying}
+                            onClick={() => pay("full", p.phase.id)}
+                          >
+                            {paying === `${p.phase.id}:full`
+                              ? "Starting…"
+                              : `Pay in full · ${money(p.total)}`}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+            {payError && <div className={styles.payError}>{payError}</div>}
+            <p className={styles.paySecure}>🔒 Secure payment powered by Stripe</p>
+          </div>
+        )
+      ) : isPaid ? (
         <div className={styles.paidCard}>
           <div className={styles.paidCheck}>✓</div>
           <div>
@@ -229,12 +436,6 @@ export default function QuotePage() {
         </div>
       ) : (
         <div className={styles.payCard}>
-          {justPaid && (
-            <div className={styles.confirming}>
-              Confirming your payment… this page updates automatically once it
-              clears.
-            </div>
-          )}
           <h2 className={styles.payTitle}>
             {amountPaid > 0 ? "Balance remaining" : "Ready to get started?"}
           </h2>

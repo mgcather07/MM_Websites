@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { ref, onValue, push, set } from "firebase/database";
 import { db } from "../firebase";
 import { toList, dateShort } from "../lib/format";
+import CopyButton from "../components/CopyButton";
 
 const blank = { businessName: "", contactName: "", email: "", phone: "" };
+const FREE_QUOTE_LINK = "https://mmwebsites.com/#quote";
 
 export default function Clients() {
   const [clients, setClients] = useState([]);
@@ -59,9 +61,17 @@ export default function Clients() {
           <p className="eyebrow">People</p>
           <h1>Clients</h1>
         </div>
-        <button className="btn btn-maroon" onClick={() => setAdding((v) => !v)}>
-          {adding ? "Cancel" : "+ Add client"}
-        </button>
+        <div className="head-actions">
+          <CopyButton
+            text={FREE_QUOTE_LINK}
+            label="Copy free-quote link"
+            copiedLabel="Copied!"
+            className="btn btn-outline"
+          />
+          <button className="btn btn-maroon" onClick={() => setAdding((v) => !v)}>
+            {adding ? "Cancel" : "+ Add client"}
+          </button>
+        </div>
       </header>
 
       {adding && (
