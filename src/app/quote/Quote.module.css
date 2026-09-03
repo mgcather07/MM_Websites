@@ -262,6 +262,21 @@
   line-height: 1.5;
   color: #5a5f64;
 }
+.phaseBreak {
+  margin: 10px 48px 0;
+  border-top: 1px solid #e6e4e1;
+  padding-top: 10px;
+}
+.phaseTotalRow {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #e6e4e1;
+  color: #1d1f21;
+  font-weight: 800;
+}
+.phaseTotalRow span:last-child {
+  font-size: 17px;
+}
 
 .total {
   margin: 26px 48px 0;
@@ -345,7 +360,8 @@
     padding-right: 18px;
   }
   .rule,
-  .breakdown {
+  .breakdown,
+  .phaseBreak {
     margin-left: 22px;
     margin-right: 22px;
   }

@@ -6,7 +6,7 @@ import { toList, dateShort } from "../lib/format";
 import CopyButton from "../components/CopyButton";
 
 const blank = { businessName: "", contactName: "", email: "", phone: "" };
-const FREE_QUOTE_LINK = "https://mmwebsites.com/#quote";
+const FREE_QUOTE_LINK = "https://mmwebsites.com/contact";
 
 export default function Clients() {
   const [clients, setClients] = useState([]);

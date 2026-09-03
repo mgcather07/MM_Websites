@@ -1,3 +1,4 @@
+import Link from "next/link";
 import HeroBuild from "./HeroBuild";
 import styles from "./Hero.module.css";
 
@@ -25,13 +26,13 @@ export default function Hero() {
           </p>
 
           <div className={`${styles.buttons} mm-hero-cta`}>
-            <a href="#quote" className={`btn btn-white ${styles.primary}`}>
+            <Link href="/contact" className={`btn btn-white ${styles.primary}`}>
               Get my free quote
               <span className="mm-sheen" aria-hidden />
-            </a>
-            <a href="#work" className={`btn btn-outline ${styles.secondary}`}>
+            </Link>
+            <Link href="/work" className={`btn btn-outline ${styles.secondary}`}>
               See our work
-            </a>
+            </Link>
           </div>
 
           <ul className={`${styles.proof} mm-proof`}>

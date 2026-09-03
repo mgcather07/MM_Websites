@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ref, onValue } from "firebase/database";
 import { db } from "../firebase";
-import { toList, money, dateShort } from "../lib/format";
-
-const itemsOf = (q) =>
-  Array.isArray(q.items) ? q.items : Object.values(q.items || {});
-const totalOf = (q) =>
-  itemsOf(q).reduce((s, it) => s + Number(it?.price || 0), 0);
+import { toList, money, dateShort, quoteTotal } from "../lib/format";
 
 export default function Quotes() {
   const [quotes, setQuotes] = useState([]);
@@ -60,7 +55,7 @@ export default function Quotes() {
                         </div>
                       )}
                     </td>
-                    <td className="num strong">{money(totalOf(q))}</td>
+                    <td className="num strong">{money(quoteTotal(q))}</td>
                     <td>
                       <span
                         className={`pill ${

@@ -595,7 +595,16 @@ export default function QuoteEdit() {
                       + Add item
                     </button>
                     <div className="phase-subtotal">
-                      Phase total <strong>{money(phaseTotal(ph))}</strong>
+                      {discountPct > 0 ? (
+                        <>
+                          Subtotal {money(phaseSub(ph))} · −{discountPct}% ={" "}
+                          <strong>{money(phaseTotal(ph))}</strong>
+                        </>
+                      ) : (
+                        <>
+                          Phase total <strong>{money(phaseTotal(ph))}</strong>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

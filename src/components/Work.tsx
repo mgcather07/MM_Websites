@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
+import Link from "next/link";
 import ImageSlot from "./ImageSlot";
 import Reveal from "./Reveal";
 import { work, type WorkItem } from "@/content/work";
@@ -13,7 +14,10 @@ function resolveImage(image?: string): string | undefined {
   return existsSync(path.join(process.cwd(), "public", image)) ? image : undefined;
 }
 
-export default function Work() {
+export default function Work({ preview = false }: { preview?: boolean }) {
+  const list = preview ? work.slice(0, 3) : work;
+  const showBlurb = !preview;
+
   return (
     <section id="work" className={`band ${styles.section}`} aria-labelledby="work-title">
       <div className="container">
@@ -29,18 +33,28 @@ export default function Work() {
         </Reveal>
 
         <div className={styles.grid}>
-          {work.map((item, i) => (
+          {list.map((item, i) => (
             <Reveal key={item.title} delay={i * 90} distance={26}>
-              <Card item={item} />
+              <Card item={item} showBlurb={showBlurb} />
             </Reveal>
           ))}
         </div>
+
+        {preview && (
+          <Reveal>
+            <div className={styles.more}>
+              <Link href="/work" className="btn btn-outline">
+                See all our work
+              </Link>
+            </div>
+          </Reveal>
+        )}
       </div>
     </section>
   );
 }
 
-function Card({ item }: { item: WorkItem }) {
+function Card({ item, showBlurb }: { item: WorkItem; showBlurb?: boolean }) {
   const image = resolveImage(item.image);
   const inner = (
     <>
@@ -53,6 +67,7 @@ function Card({ item }: { item: WorkItem }) {
       </div>
       <h3 className={styles.itemTitle}>{item.title}</h3>
       <p className={styles.itemMeta}>{item.meta}</p>
+      {showBlurb && item.blurb && <p className={styles.itemBlurb}>{item.blurb}</p>}
     </>
   );
 

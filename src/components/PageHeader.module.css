@@ -1,0 +1,33 @@
+.header {
+  padding: 64px var(--band-x) 40px;
+  background: linear-gradient(180deg, #f6f4f2 0%, var(--white) 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+  display: block;
+}
+
+.title {
+  margin: 12px 0 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  color: var(--ink);
+  max-width: 20ch;
+}
+
+.lead {
+  margin: 18px 0 0;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--gray-700);
+  max-width: 54ch;
+}
+
+@media (max-width: 760px) {
+  .header {
+    padding: 44px 20px 32px;
+  }
+}

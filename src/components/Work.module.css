@@ -103,3 +103,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* "See all" link under the preview grid */
+.more {
+  margin-top: 34px;
+  text-align: center;
+}
+
+.itemBlurb {
+  margin: 8px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--gray-700);
+}

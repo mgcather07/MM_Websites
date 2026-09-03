@@ -1,0 +1,194 @@
+/* --- What comes with every website --- */
+.included {
+  background: var(--white);
+}
+.includedHead {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto 36px;
+}
+.includedLede {
+  margin: 12px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+.includedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.includedItem {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.check {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--good-soft, #e6f2ec);
+  color: var(--good, #2e7d5b);
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.includedItemTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.includedItemBody {
+  margin: 5px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--gray-700);
+}
+
+/* --- Grouped detailed services --- */
+.group {
+  background: var(--white);
+}
+.alt {
+  background: var(--surface, #f5f3f1);
+}
+.groupHead {
+  max-width: 44rem;
+  margin-bottom: 32px;
+}
+.groupIntro {
+  margin: 12px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 26px 28px;
+}
+.alt .card {
+  border-color: #e7e3df;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+.cardBlurb {
+  margin: 10px 0 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+.includes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.includes li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2, #3a3e42);
+}
+.includes li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--maroon);
+  font-weight: 800;
+}
+
+/* --- Pricing explainer --- */
+.pricing {
+  background: var(--surface, #f5f3f1);
+}
+.pricingCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.pricingTitle {
+  margin: 10px 0 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+}
+.pricingBody {
+  margin: 14px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--gray-700);
+  max-width: 46rem;
+}
+.pricingPoints {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pricingPoints li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.98rem;
+  color: var(--ink-2, #3a3e42);
+}
+.pricingPoints li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--maroon);
+  font-weight: 800;
+}
+.pricingBtn {
+  flex: none;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 26px;
+  border-radius: 10px;
+}
+
+@media (max-width: 860px) {
+  .includedGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .pricingCard {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 30px;
+  }
+}
+@media (max-width: 560px) {
+  .includedGrid {
+    grid-template-columns: 1fr;
+  }
+}

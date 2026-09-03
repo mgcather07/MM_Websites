@@ -25,6 +25,25 @@ export function toList(obj) {
   return Object.entries(obj).map(([id, v]) => ({ id, ...v }));
 }
 
+// A quote's total, handling both flat and phased quotes plus a % discount.
+// Phased quotes keep their line items inside `phases`, with a top-level
+// `items: []`, so summing `items` alone would read $0.
+export function quoteTotal(q) {
+  if (!q) return 0;
+  const pct = Number(q.discountPercent || 0);
+  const disc = (n) => (pct > 0 ? Math.round((n * (100 - pct)) / 100) : n);
+  const sumItems = (items) =>
+    (Array.isArray(items) ? items.filter(Boolean) : Object.values(items || {})).reduce(
+      (a, it) => a + Number((it && it.price) || 0),
+      0,
+    );
+  const phases = (
+    Array.isArray(q.phases) ? q.phases.filter(Boolean) : Object.values(q.phases || {})
+  ).filter((p) => p && p.id);
+  if (phases.length) return phases.reduce((s, ph) => s + disc(sumItems(ph.items)), 0);
+  return disc(sumItems(q.items));
+}
+
 // Friendly messages for Firebase Auth error codes.
 export function authError(code) {
   switch (code) {

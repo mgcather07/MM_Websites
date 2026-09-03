@@ -6,7 +6,7 @@ import { money, dateShort, toList } from "../lib/format";
 import { useAuth } from "../auth/AuthContext";
 import CopyButton from "../components/CopyButton";
 
-const FREE_QUOTE_LINK = "https://mmwebsites.com/#quote";
+const FREE_QUOTE_LINK = "https://mmwebsites.com/contact";
 
 const DAY = 86400000;
 const ymd = (d) => new Date(d).toISOString().slice(0, 10);

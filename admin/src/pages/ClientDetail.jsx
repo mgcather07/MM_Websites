@@ -2,26 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ref, onValue, push, set, update } from "firebase/database";
 import { db } from "../firebase";
-import { money, dateShort, toList } from "../lib/format";
+import { money, dateShort, toList, quoteTotal } from "../lib/format";
 import CopyButton from "../components/CopyButton";
 
 const QUOTE_LINK_BASE = "https://mmwebsites.com/quote?id=";
-
-// A quote's total, handling both flat and phased quotes plus a % discount.
-function quoteTotal(q) {
-  const pct = Number(q.discountPercent || 0);
-  const disc = (n) => (pct > 0 ? Math.round((n * (100 - pct)) / 100) : n);
-  const sumItems = (items) =>
-    (Array.isArray(items) ? items.filter(Boolean) : Object.values(items || {})).reduce(
-      (a, it) => a + Number((it && it.price) || 0),
-      0,
-    );
-  const phases = (Array.isArray(q.phases) ? q.phases.filter(Boolean) : Object.values(q.phases || {})).filter(
-    (p) => p && p.id,
-  );
-  if (phases.length) return phases.reduce((s, ph) => s + disc(sumItems(ph.items)), 0);
-  return disc(sumItems(q.items));
-}
 
 // Turn a quote's status into a plain-English "have they approved it?" answer.
 function quoteStatusMeta(q) {

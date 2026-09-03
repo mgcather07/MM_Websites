@@ -1,0 +1,102 @@
+.section {
+  background: var(--white);
+}
+.head {
+  max-width: 44rem;
+  margin-bottom: 40px;
+}
+.intro {
+  margin: 12px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 46rem;
+}
+
+.step {
+  display: flex;
+  gap: 22px;
+  padding-bottom: 34px;
+  position: relative;
+}
+/* Connecting line down the markers */
+.step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 48px;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.marker {
+  flex: none;
+  position: relative;
+  z-index: 1;
+}
+.num {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--maroon);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.content {
+  padding-top: 4px;
+}
+.stepHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.stepTitle {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+.time {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--maroon);
+  background: #f3e7ea;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.stepBody {
+  margin: 10px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--gray-700);
+}
+
+@media (max-width: 560px) {
+  .step {
+    gap: 16px;
+  }
+  .num {
+    width: 40px;
+    height: 40px;
+    font-size: 17px;
+  }
+  .step:not(:last-child)::before {
+    left: 19px;
+    top: 42px;
+  }
+}

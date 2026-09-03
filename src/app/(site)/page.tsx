@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import AnchorScroll from "@/components/AnchorScroll";
-import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
+import Stats from "@/components/Stats";
 import Services from "@/components/Services";
 import Work from "@/components/Work";
 import Process from "@/components/Process";
-import QuoteForm from "@/components/QuoteForm";
-import Footer from "@/components/Footer";
+import CtaBand from "@/components/CtaBand";
 import { site } from "@/content/site";
 import { services } from "@/content/services";
 
@@ -110,20 +108,12 @@ export default function Home() {
         // JSON-LD for local SEO; content is static and trusted.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <AnchorScroll />
-      <a href="#quote" className="visually-hidden-focusable">
-        Skip to quote form
-      </a>
-      <div id="top" />
-      <Nav />
-      <main>
-        <Hero />
-        <Services />
-        <Work />
-        <Process />
-        <QuoteForm />
-      </main>
-      <Footer />
+      <Hero />
+      <Stats />
+      <Services preview />
+      <Work preview />
+      <Process />
+      <CtaBand />
     </>
   );
 }

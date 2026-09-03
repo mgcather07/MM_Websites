@@ -238,6 +238,25 @@ export default function QuotePage() {
                     </div>
                   ))}
                 </div>
+                {discountPct > 0 && (
+                  <div className={styles.phaseBreak}>
+                    <div className={styles.breakRow}>
+                      <span>Subtotal</span>
+                      <span>{money(p.subtotal)}</span>
+                    </div>
+                    <div className={`${styles.breakRow} ${styles.breakDiscount}`}>
+                      <span>
+                        {quote.discountReason ? quote.discountReason : "Discount"} (
+                        {discountPct}%)
+                      </span>
+                      <span>−{money(p.subtotal - p.total)}</span>
+                    </div>
+                    <div className={`${styles.breakRow} ${styles.phaseTotalRow}`}>
+                      <span>Phase total</span>
+                      <span>{money(p.total)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 
