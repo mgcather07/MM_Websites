@@ -23,6 +23,29 @@
   color: var(--white);
 }
 
+/* Subtle "Built by Rehtac" credit — muted so it never competes with M&M. */
+.footer a.builtBy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.45);
+}
+.footer a.builtBy:hover {
+  color: var(--white);
+}
+.builtBy img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.75;
+  transition: opacity 160ms ease;
+}
+.footer a.builtBy:hover img {
+  opacity: 1;
+}
+
 @media (max-width: 1199px) {
   .footer {
     padding: 26px 32px;
